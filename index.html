@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasty Nest | Handcrafted Home Recipes & Pinterest Kitchen</title>
+  <meta name="description"
+    content="Discover, cook, and savor handcrafted recipes with step-by-step instructions, dynamic ingredient scaling, nutrition facts, and Pinterest integration.">
+  <meta property="og:title" content="Tasty Nest | Handcrafted Home Recipes & Pinterest Kitchen">
+  <meta property="og:description"
+    content="Discover, cook, and savor handcrafted recipes with step-by-step instructions, dynamic ingredient scaling, nutrition facts, and Pinterest integration.">
+  <meta property="og:image" content="sri_lankan_crab_curry.jpg">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#faf8f5">
+
+  <!-- Favicon & Touch Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <!-- Google Fonts: Newsreader (Editorial Serif) & Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Universal Image Path Fallback for Legacy/Subfolder Paths -->
+  <script>
+    window.addEventListener('error', function (e) {
+      if (e.target && e.target.tagName === 'IMG') {
+        var src = e.target.getAttribute('src');
+        if (src && /images\//i.test(src) && !e.target.dataset.fallbackApplied) {
+          e.target.dataset.fallbackApplied = 'true';
+          e.target.src = src.replace(/^(\.\/|\/)?images\//i, '');
+        }
+      }
+    }, true);
+  </script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              300: '#fdba74',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            },
+            pinterest: '#e60023'
+          },
+          fontFamily: {
+            serif: ['Newsreader', 'Playfair Display', 'Georgia', 'serif'],
+            body: ['Plus Jakarta Sans', '-apple-system', 'sans-serif'],
+            accent: ['Outfit', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Firebase SDKs (v10 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <!-- Dexie.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- Pinterest Official SDK -->
+  <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body
+  class="min-h-screen flex flex-col bg-[#faf8f5] text-zinc-900 antialiased selection:bg-brand-600 selection:text-white">
+
+  <!-- ========================================== -->
+  <!-- MAIN HEADER / NAVBAR (MATCHING SCREENSHOT) -->
+  <!-- ========================================== -->
+  <header class="sticky top-0 z-40 glass-header shadow-xs no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
+
+      <!-- Brand Logo -->
+      <a href="#home" id="brand-logo" class="flex items-center gap-3 shrink-0 group focus:outline-none"
+        title="Tasty Nest - Simple Recipes, Great Taste">
+        <div
+          class="w-11 h-11 rounded-2xl overflow-hidden shadow-2xs border border-orange-200/70 group-hover:scale-105 group-hover:shadow-xs transition-all duration-300 bg-[#fff9f2] flex items-center justify-center shrink-0">
+          <img src="logo.png" alt="Tasty Nest Logo" class="w-full h-full object-contain">
+        </div>
+        <div>
+          <span
+            class="font-serif font-bold text-2xl tracking-tight text-zinc-900 group-hover:text-brand-700 transition">Tasty
+            Nest</span>
+          <span class="block text-[11px] font-medium text-zinc-400 -mt-1">Simple Recipes • Great Taste</span>
+        </div>
+      </a>
+
+      <!-- Search & Inline Filter (Navbar) -->
+      <div class="hidden lg:flex items-center flex-1 max-w-xs xl:max-w-sm mx-4">
+        <div
+          class="relative w-full flex items-center bg-white border border-[#e8e2d8] rounded-full px-3 py-1.5 shadow-2xs focus-within:border-brand-600 focus-within:ring-1 focus-within:ring-brand-600 transition">
+          <i data-lucide="search" class="w-4 h-4 text-zinc-400 mr-2 shrink-0"></i>
+          <input type="text" id="nav-search-input" placeholder="Search recipes..."
+            class="w-full bg-transparent text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none">
+          <button id="nav-search-clear" class="hidden text-zinc-400 hover:text-zinc-600 mr-1.5">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+          <div class="h-4 w-px bg-zinc-200 mx-1"></div>
+          <button id="nav-filter-btn"
+            class="flex items-center gap-1 text-[11px] font-semibold text-zinc-500 hover:text-zinc-800 shrink-0 pl-1">
+            <span>Filter</span>
+            <i data-lucide="sliders-horizontal" class="w-3 h-3 text-zinc-400"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Category Links (Interactive Navigation into Category Collections) -->
+      <nav class="hidden md:flex items-center gap-5 text-xs font-semibold text-zinc-600">
+        <button class="header-cat-link hover:text-brand-600 transition" data-category="Quick Dinners">Quick
+          Dinners</button>
+        <button class="header-cat-link hover:text-brand-600 transition" data-category="Desserts">Desserts</button>
+        <button class="header-cat-link hover:text-brand-600 transition" data-category="Healthy Eats">Healthy
+          Eats</button>
+        <button class="header-cat-link hover:text-brand-600 transition" data-category="Sri Lankan & Asian">Sri Lankan &
+          Asian</button>
+        <button class="header-cat-link hover:text-brand-600 transition" data-category="Drinks">Drinks</button>
+      </nav>
+
+      <!-- Right Actions: Follow on Pinterest, Bookmark, Profile/Admin -->
+      <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <!-- Follow on Pinterest Button -->
+        <a href="https://www.pinterest.com/tastynest917" target="_blank" rel="noopener noreferrer"
+          class="flex items-center gap-1.5 px-3.5 py-2 bg-pinterest hover:bg-red-700 text-white rounded-full text-xs font-bold shadow-xs transition">
+          <span
+            class="w-3.5 h-3.5 bg-white text-pinterest rounded-full flex items-center justify-center text-[10px] font-black">P</span>
+          <span class="hidden sm:inline">Follow on Pinterest</span>
+        </a>
+
+        <!-- Bookmark / Saved Recipes -->
+        <button id="nav-btn-favorites"
+          class="relative p-2 text-zinc-600 hover:text-zinc-900 rounded-full hover:bg-black/5 transition"
+          title="Saved Recipes">
+          <i data-lucide="bookmark" class="w-5 h-5"></i>
+          <span id="nav-fav-badge"
+            class="absolute -top-0.5 -right-0.5 px-1.5 py-0.2 bg-brand-600 text-white rounded-full text-[10px] font-bold">0</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Mobile Search Bar -->
+  <div class="lg:hidden px-4 py-2.5 bg-white border-b border-[#e8e2d8] no-print">
+    <div class="relative w-full flex items-center bg-[#f4efe9] rounded-full px-3 py-2">
+      <i data-lucide="search" class="w-4 h-4 text-zinc-400 mr-2"></i>
+      <input type="text" id="mobile-search-input" placeholder="Search recipes, ingredients..."
+        class="w-full bg-transparent text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none">
+    </div>
+  </div>
+
+  <!-- MAIN VIEWPORT CONTAINER -->
+  <main class="flex-1">
+
+    <!-- ======================================================== -->
+    <!-- VIEW 1: PUBLIC HOMEPAGE (MATCHING EXACT SCREENSHOT DESIGN) -->
+    <!-- ======================================================== -->
+    <section id="home-view" class="space-y-14 pb-20">
+
+      <!-- ========================================== -->
+      <!-- SECTION 1: HERO RECIPE OF THE DAY          -->
+      <!-- ========================================== -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div class="bg-white rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#e8e2d8] hero-editorial-card">
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+
+            <!-- LEFT COLUMN: Recipe of the day details -->
+            <div class="lg:col-span-7 space-y-6">
+
+              <!-- Main Hero Title -->
+              <h1
+                class="font-serif font-bold text-3xl sm:text-4xl lg:text-[44px] text-zinc-900 leading-[1.16] tracking-tight">
+                <span id="hero-dish-title">Spicy Sri Lankan Black Pepper Crab Curry</span>
+                <span id="hero-dish-sub" class="block text-xl sm:text-2xl lg:text-[27px] hero-dish-sub mt-2">with
+                  Fragrant Coconut Rice</span>
+              </h1>
+
+              <!-- Description -->
+              <p id="hero-dish-description" class="text-sm sm:text-base text-zinc-600 leading-relaxed font-normal">
+                Tender blue swimmer crab simmered in roasted black pepper, crushed coriander seeds, aromatic curry
+                leaves, and velvety thick coconut cream. An unforgettable heirloom dinner party triumph.
+              </p>
+
+              <!-- 4 Refined Stat Pills -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div
+                  class="p-3 rounded-2xl bg-[#faf8f5] border border-[#e8e2d8] shadow-2xs hover:border-amber-300/80 transition">
+                  <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-zinc-900">
+                    <i data-lucide="star" class="w-3.5 h-3.5 text-amber-500 fill-amber-500"></i>
+                    <span id="hero-stat-rating">4.9</span>
+                  </div>
+                  <span id="hero-stat-reviews" class="block text-[10px] text-zinc-500 mt-1 font-medium">428 Verified
+                    Reviews</span>
+                </div>
+                <div
+                  class="p-3 rounded-2xl bg-[#faf8f5] border border-[#e8e2d8] shadow-2xs hover:border-brand-300/80 transition">
+                  <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-zinc-900">
+                    <i data-lucide="clock" class="w-3.5 h-3.5 text-brand-600"></i>
+                    <span id="hero-stat-cooktime">35 Mins</span>
+                  </div>
+                  <span id="hero-stat-cooktime-sub" class="block text-[10px] text-zinc-500 mt-1 font-medium">Total Cook
+                    Time</span>
+                </div>
+                <div
+                  class="p-3 rounded-2xl bg-[#faf8f5] border border-[#e8e2d8] shadow-2xs hover:border-orange-300/80 transition">
+                  <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-zinc-900">
+                    <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-600"></i>
+                    <span id="hero-stat-calories">450 kcal</span>
+                  </div>
+                  <span id="hero-stat-calories-sub" class="block text-[10px] text-zinc-500 mt-1 font-medium">Nutritious
+                    / Serving</span>
+                </div>
+                <div
+                  class="p-3 rounded-2xl bg-[#faf8f5] border border-[#e8e2d8] shadow-2xs hover:border-emerald-300/80 transition">
+                  <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-zinc-900">
+                    <i data-lucide="utensils-crossed" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span id="hero-stat-difficulty">Intermediate</span>
+                  </div>
+                  <span id="hero-stat-diff-sub" class="block text-[10px] text-zinc-500 mt-1 font-medium">One-Pot
+                    Magic</span>
+                </div>
+              </div>
+
+              <!-- Action Buttons Row -->
+              <div class="flex items-center gap-3 flex-wrap pt-2">
+                <!-- View Full Recipe Button -->
+                <button id="btn-hero-view-recipe" onclick="navigateTo('detail', 'rec-crab-curry')"
+                  class="px-6 py-3.5 bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white rounded-full text-xs sm:text-sm font-bold shadow-sm shadow-brand-700/20 hover:shadow-md transition-all duration-300 flex items-center gap-2 cursor-pointer transform hover:-translate-y-0.5">
+                  <i data-lucide="utensils" class="w-4 h-4"></i>
+                  <span>View Full Recipe</span>
+                </button>
+
+                <!-- Save to Pinterest Board Button -->
+                <a id="hero-pinterest-btn"
+                  href="https://www.pinterest.com/pin/create/button/?url=https://www.pinterest.com/tastynest917&media=sri_lankan_crab_curry.jpg&description=Spicy Sri Lankan Black Pepper Crab Curry with Fragrant Coconut Rice on Tasty Nest"
+                  target="_blank" rel="noopener noreferrer"
+                  class="px-5 py-3.5 bg-white hover:bg-[#faf8f5] border border-[#e8e2d8] hover:border-pinterest/40 text-zinc-800 hover:text-pinterest rounded-full text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-2 shadow-2xs cursor-pointer">
+                  <span
+                    class="w-4 h-4 rounded-full bg-pinterest text-white flex items-center justify-center text-[10px] font-black">P</span>
+                  <span>Save to Pinterest</span>
+                </a>
+
+                <!-- Bookmark Button -->
+                <button id="btn-hero-bookmark" onclick="handleToggleFavorite('rec-crab-curry', this)"
+                  class="w-11 h-11 rounded-full bg-white hover:bg-rose-50 border border-[#e8e2d8] hover:border-rose-200 text-zinc-600 hover:text-rose-600 flex items-center justify-center transition shadow-2xs cursor-pointer"
+                  title="Bookmark Recipe">
+                  <i data-lucide="bookmark" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Share Button -->
+                <button id="btn-hero-share"
+                  class="w-11 h-11 rounded-full bg-white hover:bg-stone-100 border border-[#e8e2d8] text-zinc-600 hover:text-zinc-900 flex items-center justify-center transition shadow-2xs cursor-pointer"
+                  title="Share Recipe">
+                  <i data-lucide="share-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <!-- Chef Attribution Row -->
+              <div class="pt-5 border-t border-[#e8e2d8] flex items-center justify-between gap-4 flex-wrap">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-amber-500 text-white font-bold text-xs flex items-center justify-center shadow-2xs border-2 border-white ring-1 ring-orange-200 shrink-0">
+                    <i data-lucide="chef-hat" class="w-5 h-5"></i>
+                  </div>
+                  <div class="text-xs leading-tight">
+                    <div class="flex items-center gap-1.5">
+                      <p id="hero-chef-name" class="font-bold text-zinc-900">Dilrukshi P.</p>
+                      <span id="hero-chef-badge"
+                        class="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-800">Verified
+                        Chef</span>
+                    </div>
+                    <p id="hero-chef-sub" class="text-[11px] text-zinc-500 mt-0.5">Tested 3 times in test kitchen •
+                      Pinned 8.1k times</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                  <span id="hero-series-tag">Heirloom Heritage Series</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: Recipe Cover Photo & Flavor Overlay -->
+            <div class="lg:col-span-5 relative">
+              <div
+                class="relative rounded-3xl overflow-hidden aspect-4/3 sm:aspect-square lg:aspect-4/3 shadow-sm border border-[#e8e2d8] group">
+                <img id="hero-cover-img" src="sri_lankan_crab_curry.jpg" alt="Spicy Sri Lankan Black Pepper Crab Curry"
+                  class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500">
+
+                <!-- Floating Save Pin Badge -->
+                <a id="hero-floating-pin-btn" href="https://www.pinterest.com/tastynest917" target="_blank"
+                  rel="noopener noreferrer"
+                  class="absolute top-4 right-4 bg-pinterest hover:bg-red-700 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md flex items-center gap-1.5 transition">
+                  <span
+                    class="w-3.5 h-3.5 bg-white text-pinterest rounded-full flex items-center justify-center text-[9px] font-black">P</span>
+                  <span>Save Pin</span>
+                </a>
+
+                <!-- Floating Bottom Flavor Card -->
+                <div
+                  class="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-[#e8e2d8] shadow-md flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-2.5">
+                    <div id="hero-flavor-initial"
+                      class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
+                      TL
+                    </div>
+                    <div>
+                      <span class="block text-[10px] uppercase font-bold text-zinc-400">Key Flavor Base</span>
+                      <p id="hero-flavor-text" class="text-xs font-bold text-zinc-800 truncate">Crushed Kampot Pepper &
+                        Raw Coconut</p>
+                    </div>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <span id="hero-flavor-count" class="text-xs font-bold text-brand-700">9</span>
+                    <span class="block text-[10px] text-zinc-400">Ingredients</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SECTION 2: EXPLORE BY CRAVING (CARDS & PILLS) -->
+      <!-- ========================================== -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e8e2d8] pb-4">
+          <div>
+            <div class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-brand-700">
+              <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+              <span>CURATED COLLECTIONS</span>
+            </div>
+            <h2 class="font-serif font-bold text-2xl sm:text-3xl text-zinc-900 mt-0.5">Explore by Craving</h2>
+            <p class="text-xs sm:text-sm text-zinc-500 mt-0.5">Handcrafted collections organized for quick weeknights,
+              family feasts, and sweet indulgences.</p>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button id="btn-browse-collections"
+              class="px-3.5 py-1.5 rounded-full bg-white border border-[#e8e2d8] text-xs font-bold text-stone-600 hover:text-stone-900 hover:bg-[#faf8f5] transition shadow-subtle flex items-center gap-1.5 cursor-pointer"><span>All
+                Collections</span><i data-lucide="arrow-right" class="w-3.5 h-3.5 text-[#c2410c]"></i></button>
+            <button id="btn-refresh-filters"
+              class="px-3.5 py-1.5 rounded-full bg-white border border-[#e8e2d8] text-xs font-bold text-zinc-600 hover:text-zinc-900 hover:bg-stone-50 transition shadow-2xs flex items-center gap-1.5"
+              title="Reset Filters to All Popular">
+              <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+              <span>Reset All</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Uniform Balanced Craving Cards Grid (Equal Width, Height & Aesthetics) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4" id="category-pills">
+
+          <!-- Card 1: All Popular -->
+          <button
+            class="craving-card cat-pill active group relative bg-white p-4 rounded-3xl border border-[#e8e2d8] text-center flex flex-col items-center justify-between shadow-2xs cursor-pointer select-none"
+            data-category="All Popular">
+            <div
+              class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 bg-gradient-to-tr from-brand-500 to-amber-400 shadow-xs mb-3 group-hover:scale-105 transition-transform duration-300">
+              <img src="sri_lankan_crab_curry.jpg" alt="All Popular"
+                class="w-full h-full object-cover rounded-full border-2 border-white">
+              <span
+                class="craving-active-badge absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center text-[10px] shadow-xs">
+                <i data-lucide="check" class="w-3 h-3"></i>
+              </span>
+            </div>
+            <h3 class="font-serif font-bold text-zinc-900 text-sm group-hover:text-brand-700 transition">All Popular
+            </h3>
+            <span class="text-[11px] text-zinc-400 font-medium mt-0.5 craving-subtitle">All 12 Dishes</span>
+          </button>
+
+          <!-- Card 2: Quick Dinners -->
+          <button
+            class="craving-card cat-pill group relative bg-white p-4 rounded-3xl border border-[#e8e2d8] text-center flex flex-col items-center justify-between shadow-2xs cursor-pointer select-none"
+            data-category="Quick Dinners">
+            <div
+              class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 bg-gradient-to-tr from-amber-400 to-orange-500 shadow-xs mb-3 group-hover:scale-105 transition-transform duration-300">
+              <img src="quick_dinners_bowl.jpg" alt="Quick Dinners"
+                class="w-full h-full object-cover rounded-full border-2 border-white">
+              <span
+                class="craving-active-badge hidden absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center text-[10px] shadow-xs">
+                <i data-lucide="check" class="w-3 h-3"></i>
+              </span>
+            </div>
+            <h3 class="font-serif font-bold text-zinc-900 text-sm group-hover:text-brand-700 transition">Quick Dinners
+            </h3>
+            <span class="text-[11px] text-zinc-400 font-medium mt-0.5 craving-subtitle">15-20 Min Bowls</span>
+          </button>
+
+          <!-- Card 3: Desserts -->
+          <button
+            class="craving-card cat-pill group relative bg-white p-4 rounded-3xl border border-[#e8e2d8] text-center flex flex-col items-center justify-between shadow-2xs cursor-pointer select-none"
+            data-category="Desserts">
+            <div
+              class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 bg-gradient-to-tr from-pink-400 to-rose-500 shadow-xs mb-3 group-hover:scale-105 transition-transform duration-300">
+              <img src="dessert_chocolate_lava.jpg" alt="Desserts"
+                class="w-full h-full object-cover rounded-full border-2 border-white">
+              <span
+                class="craving-active-badge hidden absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center text-[10px] shadow-xs">
+                <i data-lucide="check" class="w-3 h-3"></i>
+              </span>
+            </div>
+            <h3 class="font-serif font-bold text-zinc-900 text-sm group-hover:text-brand-700 transition">Desserts</h3>
+            <span class="text-[11px] text-zinc-400 font-medium mt-0.5 craving-subtitle">Bakes & Sweets</span>
+          </button>
+
+          <!-- Card 4: Healthy Eats -->
+          <button
+            class="craving-card cat-pill group relative bg-white p-4 rounded-3xl border border-[#e8e2d8] text-center flex flex-col items-center justify-between shadow-2xs cursor-pointer select-none"
+            data-category="Healthy Eats">
+            <div
+              class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 bg-gradient-to-tr from-emerald-400 to-teal-500 shadow-xs mb-3 group-hover:scale-105 transition-transform duration-300">
+              <img src="sri_lankan_dhal_curry.jpg" alt="Healthy Eats"
+                class="w-full h-full object-cover rounded-full border-2 border-white">
+              <span
+                class="craving-active-badge hidden absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center text-[10px] shadow-xs">
+                <i data-lucide="check" class="w-3 h-3"></i>
+              </span>
+            </div>
+            <h3 class="font-serif font-bold text-zinc-900 text-sm group-hover:text-brand-700 transition">Healthy Eats
+            </h3>
+            <span class="text-[11px] text-zinc-400 font-medium mt-0.5 craving-subtitle">Nutrient Bowls</span>
+          </button>
+
+          <!-- Card 5: Sri Lankan & Asian -->
+          <button
+            class="craving-card cat-pill group relative bg-white p-4 rounded-3xl border border-[#e8e2d8] text-center flex flex-col items-center justify-between shadow-2xs cursor-pointer select-none"
+            data-category="Sri Lankan & Asian">
+            <div
+              class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 bg-gradient-to-tr from-red-500 to-amber-500 shadow-xs mb-3 group-hover:scale-105 transition-transform duration-300">
+              <img src="sri_lankan_pol_roti.jpg" alt="Sri Lankan & Asian"
+                class="w-full h-full object-cover rounded-full border-2 border-white">
+              <span
+                class="craving-active-badge hidden absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center text-[10px] shadow-xs">
+                <i data-lucide="check" class="w-3 h-3"></i>
+              </span>
+            </div>
+            <h3 class="font-serif font-bold text-zinc-900 text-sm group-hover:text-brand-700 transition">Sri Lankan</h3>
+            <span class="text-[11px] text-zinc-400 font-medium mt-0.5 craving-subtitle">Heirloom Curries</span>
+          </button>
+
+          <!-- Card 6: Drinks -->
+          <button
+            class="craving-card cat-pill group relative bg-white p-4 rounded-3xl border border-[#e8e2d8] text-center flex flex-col items-center justify-between shadow-2xs cursor-pointer select-none"
+            data-category="Drinks">
+            <div
+              class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 bg-gradient-to-tr from-cyan-400 to-blue-500 shadow-xs mb-3 group-hover:scale-105 transition-transform duration-300">
+              <img src="refreshing_cooler_drink.jpg" alt="Drinks"
+                class="w-full h-full object-cover rounded-full border-2 border-white">
+              <span
+                class="craving-active-badge hidden absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center text-[10px] shadow-xs">
+                <i data-lucide="check" class="w-3 h-3"></i>
+              </span>
+            </div>
+            <h3 class="font-serif font-bold text-zinc-900 text-sm group-hover:text-brand-700 transition">Drinks</h3>
+            <span class="text-[11px] text-zinc-400 font-medium mt-0.5 craving-subtitle">Tea & Coolers</span>
+          </button>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SECTION 3: TRENDING ON TASTY NEST KITCHEN  -->
+      <!-- ========================================== -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-brand-700">
+              <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+              <span>TRENDING RIGHT NOW</span>
+            </div>
+            <h2 class="font-serif font-bold text-2xl sm:text-3xl text-zinc-900 mt-0.5">Trending on Tasty Nest Kitchen
+            </h2>
+          </div>
+
+          <!-- Quick Sorting Pills -->
+          <div class="flex items-center gap-1.5 bg-white p-1 rounded-full border border-[#e8e2d8] text-xs font-bold">
+            <button class="sort-tab-btn px-3 py-1 rounded-full bg-brand-700 text-white" data-sort="pinned">Most
+              Pinned</button>
+            <button class="sort-tab-btn px-3 py-1 rounded-full text-zinc-600 hover:text-zinc-900"
+              data-sort="quickest">Quick & Easy</button>
+            <button class="sort-tab-btn px-3 py-1 rounded-full text-zinc-600 hover:text-zinc-900" data-sort="rating">Top
+              Rated</button>
+          </div>
+        </div>
+
+        <!-- DYNAMIC ACTIVE CATEGORY BANNER (Shown when filtered by category) -->
+        <div id="category-active-banner"
+          class="hidden p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-orange-50/70 via-white to-amber-50/60 border border-brand-200/60 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div id="cat-banner-icon"
+              class="w-12 h-12 rounded-2xl bg-[#fff7ed] border border-orange-200 text-brand-700 flex items-center justify-center shadow-2xs shrink-0">
+              <i data-lucide="sparkles" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="text-[10px] font-extrabold uppercase tracking-widest text-brand-700 bg-white px-2.5 py-0.5 rounded-full border border-orange-200 shadow-2xs">Category
+                  Collection</span>
+                <span id="cat-banner-count" class="text-xs text-zinc-500 font-medium">3 recipes found</span>
+              </div>
+              <h3 id="cat-banner-title" class="font-serif font-bold text-2xl text-zinc-900 mt-0.5">Drinks</h3>
+              <p id="cat-banner-desc" class="text-xs text-zinc-600 mt-0.5">Handcrafted tropical coolers, spiced Ceylon
+                teas, and artisan mocktails.</p>
+            </div>
+          </div>
+          <button id="cat-banner-reset-btn"
+            class="px-4 py-2 bg-white border border-[#e8e2d8] text-zinc-700 hover:text-zinc-900 rounded-full text-xs font-bold transition shadow-2xs hover:bg-stone-50 flex items-center gap-1.5 shrink-0 cursor-pointer">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-brand-700"></i>
+            <span>Show All Recipes</span>
+          </button>
+        </div>
+
+        <!-- RECIPES GRID (MATCHING MOCKUP & CATEGORIES) -->
+        <div id="recipes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- View All Recipes Toggle Button Container (Limits to 9 by default) -->
+        <div id="recipes-view-all-container" class="hidden text-center pt-8 pb-2">
+          <button id="btn-view-all-recipes"
+            class="inline-flex items-center gap-2.5 px-8 py-3.5 bg-white hover:bg-stone-50 border-2 border-[#e8e2d8] hover:border-brand-600 rounded-full text-xs sm:text-sm font-bold text-zinc-800 hover:text-brand-700 shadow-sm transition-all transform hover:-translate-y-0.5 cursor-pointer">
+            <i data-lucide="layout-grid" class="w-4 h-4 text-brand-600"></i>
+            <span id="view-all-text">View All Recipes (12)</span>
+            <i data-lucide="chevron-down" id="view-all-icon" class="w-4 h-4 transition-transform duration-300"></i>
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div id="recipes-empty-state"
+          class="hidden text-center py-16 px-4 bg-white rounded-3xl border border-[#e8e2d8]">
+          <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-brand-700 mx-auto mb-3">
+            <i data-lucide="chef-hat" class="w-6 h-6"></i>
+          </div>
+          <h3 class="font-serif text-lg font-bold text-zinc-900">No matching recipes found</h3>
+          <p class="text-zinc-500 text-xs mt-1">Try another search keyword or switch to All Popular.</p>
+          <button id="reset-filters-btn"
+            class="mt-4 px-4 py-2 bg-brand-700 text-white text-xs font-bold rounded-full hover:bg-brand-800 transition">
+            Clear all filters
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SECTION 4: OFFICIAL PINTEREST SHOWCASE    -->
+      <!-- ========================================== -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-[#e8e2d8] shadow-xs space-y-6">
+
+          <!-- Pinterest Header -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-9 h-9 rounded-full bg-pinterest flex items-center justify-center text-white shrink-0 font-bold text-base shadow-xs">
+                P
+              </div>
+              <div>
+                <a href="https://www.pinterest.com/tastynest917" target="_blank" rel="noopener noreferrer"
+                  class="font-bold text-base sm:text-lg text-zinc-900 hover:text-pinterest transition flex items-center gap-1.5">
+                  <span>Tasty Nest Official Pinterest</span>
+                  <span class="text-xs">→</span>
+                </a>
+                <p class="text-[11px] text-zinc-500 font-medium">
+                  @tastynest917 • 1.4 Million Monthly Viewers • 2,400+ Curated Pins • Hover cards to play live videos!
+                </p>
+              </div>
+            </div>
+
+            <!-- Explore All Boards Red Pill Button -->
+            <a href="https://www.pinterest.com/tastynest917" target="_blank" rel="noopener noreferrer"
+              class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-pinterest hover:bg-red-700 text-white text-xs font-bold rounded-full shadow-xs transition shrink-0">
+              <span>Explore All Boards</span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+
+          <!-- 4 Board Cards Grid (Plays Video Live on Mouse Hover) -->
+          <div id="pinterest-boards-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Populated dynamically via JS with video hover playback -->
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SECTION 5: RECIPE BOOK / NEWSLETTER CARD   -->
+      <!-- ========================================== -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 newsletter-section">
+        <div
+          class="bg-[#f4efe9] rounded-3xl p-8 sm:p-12 border border-[#e8e2d8] text-center space-y-4 max-w-4xl mx-auto">
+
+          <div
+            class="inline-flex items-center px-3 py-1 rounded-full bg-white text-brand-700 text-[11px] font-bold shadow-2xs">
+            Free Weekly Meal Plans
+          </div>
+
+          <h2 class="font-serif font-bold text-3xl sm:text-4xl text-zinc-900">
+            Get Our 7-Day Sri Lankan & Quick Dinner Recipe Book
+          </h2>
+
+          <p class="text-xs sm:text-sm text-zinc-600 max-w-xl mx-auto font-normal">
+            Join 65,000+ home cooks who receive our handpicked Sunday recipe collection, printable shopping lists, and
+            exclusive Pinterest secret boards.
+          </p>
+
+          <form id="newsletter-form" class="max-w-md mx-auto flex flex-col sm:flex-row gap-2 pt-2">
+            <input type="email" id="newsletter-email" required placeholder="Enter your email address"
+              class="flex-1 px-4 py-2.5 rounded-full bg-white border border-[#e8e2d8] text-xs sm:text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-brand-700 shadow-2xs">
+            <button type="submit"
+              class="px-5 py-2.5 bg-brand-700 hover:bg-brand-800 text-white rounded-full text-xs sm:text-sm font-bold shadow-2xs transition shrink-0">
+              Claim Free Book
+            </button>
+          </form>
+
+          <p class="text-[11px] text-zinc-400">
+            Zero spam. Unsubscribe at any time with one click.
+          </p>
+
+        </div>
+      </section>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: RECIPE DETAIL VIEW (ALLRECIPES STYLE) -->
+    <!-- ========================================== -->
+    <section id="recipe-detail-view" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+      <!-- Back Navigation & Breadcrumbs -->
+      <div class="flex items-center justify-between no-print">
+        <button id="btn-back-to-recipes"
+          class="inline-flex items-center gap-2 text-xs font-bold text-zinc-600 hover:text-brand-700 transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Back to All Recipes</span>
+        </button>
+
+        <!-- Social / Action Toolbar -->
+        <div class="flex items-center gap-2 action-buttons">
+          <button id="btn-detail-favorite"
+            class="p-2.5 rounded-full border border-[#e8e2d8] bg-white hover:bg-rose-50 text-zinc-700 hover:text-rose-600 transition"
+            title="Save to Favorites">
+            <i data-lucide="bookmark" class="w-4 h-4"></i>
+          </button>
+
+          <button id="btn-detail-print"
+            class="p-2.5 rounded-full border border-[#e8e2d8] bg-white hover:bg-stone-50 text-zinc-700 transition"
+            title="Print Recipe">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+          </button>
+
+          <button id="btn-detail-share"
+            class="p-2.5 rounded-full border border-[#e8e2d8] bg-white hover:bg-stone-50 text-zinc-700 transition"
+            title="Share Recipe">
+            <i data-lucide="share-2" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Pinterest Pin Button -->
+          <a id="btn-detail-pinterest" href="https://www.pinterest.com/tastynest917" target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1.5 px-3 py-2 bg-pinterest hover:bg-red-700 text-white text-xs font-bold rounded-full shadow-xs transition">
+            <span
+              class="w-3.5 h-3.5 bg-white text-pinterest rounded-full flex items-center justify-center text-[9px] font-black">P</span>
+            <span>Pin It</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Recipe Header -->
+      <div class="space-y-3">
+        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-700">
+          <span id="detail-category-badge" class="bg-orange-50 border border-orange-200 px-3 py-1 rounded-full">Sri
+            Lankan Specials</span>
+          <span class="text-zinc-300">•</span>
+          <span id="detail-date-badge">Tested by Test Kitchen</span>
+        </div>
+
+        <h1 id="detail-title" class="font-serif font-bold text-3xl sm:text-4xl lg:text-5xl text-zinc-900 leading-tight">
+          Spicy Sri Lankan Black Pepper Crab Curry with Fragrant Coconut Rice
+        </h1>
+
+        <div class="flex items-center gap-4 flex-wrap text-xs text-zinc-600">
+          <div class="flex items-center gap-1 text-amber-500 font-bold">
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <span id="detail-rating" class="text-zinc-900">4.9</span>
+            <span class="text-zinc-400 font-normal" id="detail-reviews">(428 reviews)</span>
+          </div>
+          <span class="text-zinc-300">•</span>
+          <div class="flex items-center gap-1.5 font-medium">
+            <div
+              class="w-5 h-5 rounded-full bg-brand-100 text-brand-800 flex items-center justify-center text-[10px] font-bold">
+              TN</div>
+            <span>Recipe by <strong class="text-zinc-900" id="detail-author">Tasty Nest Culinary Lab</strong></span>
+          </div>
+        </div>
+
+        <p id="detail-description"
+          class="text-sm sm:text-base text-zinc-600 leading-relaxed border-l-4 border-brand-700 pl-4 py-1 italic bg-[#f4efe9]/50 rounded-r-xl">
+          Tender blue swimmer crab simmered in roasted black pepper, crushed coriander seeds, aromatic curry leaves, and
+          velvety thick coconut cream.
+        </p>
+      </div>
+
+      <!-- Hero Media: 5-Photo Interactive Gallery Carousel -->
+      <div class="space-y-3" id="detail-gallery-container">
+        <div
+          class="relative rounded-3xl overflow-hidden shadow-xs bg-stone-100 aspect-video max-h-[500px] border border-[#e8e2d8]">
+          <img id="detail-image" src="sri_lankan_crab_curry.jpg" alt="Recipe Cover"
+            class="w-full h-full object-cover transition-opacity duration-300">
+
+          <!-- Photo Counter Badge -->
+          <div id="detail-gallery-counter"
+            class="absolute top-4 left-4 bg-black/60 text-white text-[11px] font-bold px-3 py-1 rounded-full backdrop-blur-md flex items-center gap-1.5 z-10 shadow-sm">
+            <i data-lucide="camera" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span id="gallery-counter-text">1 / 5 Photos</span>
+          </div>
+
+          <!-- Prev / Next Navigation Arrows -->
+          <button type="button" id="btn-gallery-prev"
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition shadow-lg z-10 backdrop-blur-sm cursor-pointer"
+            title="Previous Photo">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+          <button type="button" id="btn-gallery-next"
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition shadow-lg z-10 backdrop-blur-sm cursor-pointer"
+            title="Next Photo">
+            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Video Embed Container (if present) -->
+          <div id="detail-video-container" class="hidden absolute inset-0 bg-black z-20">
+            <iframe id="detail-video-frame" class="w-full h-full" src="" title="Recipe Video" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen></iframe>
+          </div>
+
+          <!-- Video Toggle Button if recipe has video -->
+          <button id="btn-toggle-video"
+            class="hidden absolute bottom-4 right-4 bg-black/80 hover:bg-brand-700 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-2 shadow-lg transition z-30">
+            <i data-lucide="play" class="w-4 h-4"></i>
+            <span id="video-btn-text">Watch Video Tutorial</span>
+          </button>
+        </div>
+
+        <!-- 5-Photo Interactive Thumbnail Strip -->
+        <div id="detail-gallery-thumbnails" class="flex items-center gap-2.5 overflow-x-auto py-1 scrollbar-none">
+          <!-- Rendered dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Quick Stats Card Bar -->
+      <div
+        class="grid grid-cols-2 sm:grid-cols-5 gap-3 p-4 sm:p-5 bg-white rounded-2xl border border-[#e8e2d8] shadow-2xs text-center">
+        <div class="space-y-0.5 border-r border-[#e8e2d8] last:border-none">
+          <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Prep Time</span>
+          <p id="detail-prep-time" class="text-base sm:text-lg font-bold text-zinc-800">15 mins</p>
+        </div>
+        <div class="space-y-0.5 border-r border-[#e8e2d8] last:border-none">
+          <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Cook Time</span>
+          <p id="detail-cook-time" class="text-base sm:text-lg font-bold text-zinc-800">35 mins</p>
+        </div>
+        <div class="space-y-0.5 border-r border-[#e8e2d8] last:border-none">
+          <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Total Time</span>
+          <p id="detail-total-time" class="text-base sm:text-lg font-bold text-brand-700">50 mins</p>
+        </div>
+        <div class="space-y-0.5 border-r border-[#e8e2d8] last:border-none">
+          <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Servings</span>
+          <p id="detail-servings-stat" class="text-base sm:text-lg font-bold text-zinc-800">4</p>
+        </div>
+        <div class="space-y-0.5 col-span-2 sm:col-span-1">
+          <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Calories</span>
+          <p id="detail-calories-stat" class="text-base sm:text-lg font-bold text-emerald-700">450 kcal</p>
+        </div>
+      </div>
+
+      <!-- TWO COLUMN RECIPE CONTENT: Ingredients & Instructions -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- LEFT COLUMN: Ingredients with Dynamic Scaler -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-white p-6 rounded-3xl border border-[#e8e2d8] shadow-2xs space-y-5 sticky top-28">
+
+            <div class="flex items-center justify-between border-b border-[#e8e2d8] pb-4">
+              <h2 class="font-serif font-bold text-xl text-zinc-900 flex items-center gap-2">
+                <i data-lucide="shopping-bag" class="w-5 h-5 text-brand-700"></i>
+                <span>Ingredients</span>
+              </h2>
+
+              <!-- Servings Scaler -->
+              <div class="flex items-center gap-1.5 bg-[#faf8f5] p-1 rounded-full border border-[#e8e2d8] no-print">
+                <button id="btn-scale-down"
+                  class="w-6 h-6 rounded-full bg-white shadow-2xs border border-[#e8e2d8] flex items-center justify-center font-bold text-xs text-zinc-600 hover:bg-stone-100 transition"
+                  aria-label="Decrease servings">-</button>
+                <div class="text-[11px] font-bold px-1.5 text-center">
+                  <span id="scaler-current-servings">4</span> <span class="text-zinc-400 font-normal">servings</span>
+                </div>
+                <button id="btn-scale-up"
+                  class="w-6 h-6 rounded-full bg-white shadow-2xs border border-[#e8e2d8] flex items-center justify-center font-bold text-xs text-zinc-600 hover:bg-stone-100 transition"
+                  aria-label="Increase servings">+</button>
+              </div>
+            </div>
+
+            <!-- Checklist Helper -->
+            <div class="flex items-center justify-between text-[11px] text-zinc-500 no-print">
+              <span>Click items to check off while cooking</span>
+              <button id="btn-clear-ingredients-check" class="text-brand-700 hover:underline font-bold">Uncheck
+                All</button>
+            </div>
+
+            <!-- Dynamic Ingredients List -->
+            <ul id="detail-ingredients-list" class="space-y-2 text-xs sm:text-sm text-zinc-700">
+              <!-- Rendered via JS -->
+            </ul>
+
+            <!-- Nutritional Breakdown Card -->
+            <div class="pt-4 border-t border-[#e8e2d8] space-y-2.5">
+              <div
+                class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                <span>Nutrition per serving</span>
+                <span class="text-brand-700 font-semibold lowercase">est. values</span>
+              </div>
+
+              <div class="grid grid-cols-4 gap-2 text-center">
+                <div class="p-2 bg-[#faf8f5] rounded-xl border border-[#e8e2d8]">
+                  <span class="block text-[9px] text-zinc-400 font-bold uppercase">Calories</span>
+                  <span id="nut-cal" class="text-xs font-bold text-zinc-800">450</span>
+                </div>
+                <div class="p-2 bg-[#faf8f5] rounded-xl border border-[#e8e2d8]">
+                  <span class="block text-[9px] text-zinc-400 font-bold uppercase">Protein</span>
+                  <span id="nut-protein" class="text-xs font-bold text-zinc-800">38g</span>
+                </div>
+                <div class="p-2 bg-[#faf8f5] rounded-xl border border-[#e8e2d8]">
+                  <span class="block text-[9px] text-zinc-400 font-bold uppercase">Carbs</span>
+                  <span id="nut-carbs" class="text-xs font-bold text-zinc-800">22g</span>
+                </div>
+                <div class="p-2 bg-[#faf8f5] rounded-xl border border-[#e8e2d8]">
+                  <span class="block text-[9px] text-zinc-400 font-bold uppercase">Fat</span>
+                  <span id="nut-fat" class="text-xs font-bold text-zinc-800">18g</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Numbered Step-by-Step Instructions & Interactive Timer -->
+        <div class="lg:col-span-7 space-y-6">
+
+          <!-- Kitchen Timer Widget -->
+          <div class="timer-container p-5 bg-white rounded-3xl border border-[#e8e2d8] shadow-2xs space-y-3 no-print">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-brand-700 text-white flex items-center justify-center">
+                  <i data-lucide="timer" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="text-xs font-bold text-zinc-900">Interactive Kitchen Timer</h3>
+                  <p class="text-[10px] text-zinc-500">Track your simmer & bake time while following steps</p>
+                </div>
+              </div>
+              <div id="timer-display" class="font-mono text-xl font-bold text-brand-700 tracking-wider">
+                00:00
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 flex-wrap pt-1">
+              <button
+                class="quick-timer-btn px-2.5 py-1 text-xs font-semibold bg-[#faf8f5] border border-[#e8e2d8] rounded-lg hover:bg-stone-100"
+                data-seconds="180">+3 min</button>
+              <button
+                class="quick-timer-btn px-2.5 py-1 text-xs font-semibold bg-[#faf8f5] border border-[#e8e2d8] rounded-lg hover:bg-stone-100"
+                data-seconds="300">+5 min</button>
+              <button
+                class="quick-timer-btn px-2.5 py-1 text-xs font-semibold bg-[#faf8f5] border border-[#e8e2d8] rounded-lg hover:bg-stone-100"
+                data-seconds="900">+15 min</button>
+              <button
+                class="quick-timer-btn px-2.5 py-1 text-xs font-semibold bg-[#faf8f5] border border-[#e8e2d8] rounded-lg hover:bg-stone-100"
+                data-seconds="2100">+35 min</button>
+
+              <div class="ml-auto flex items-center gap-1.5">
+                <button id="btn-timer-toggle"
+                  class="px-3.5 py-1 text-xs font-bold bg-brand-700 text-white rounded-lg hover:bg-brand-800 transition">Start</button>
+                <button id="btn-timer-reset"
+                  class="px-2.5 py-1 text-xs font-semibold bg-stone-100 text-zinc-700 rounded-lg hover:bg-stone-200 transition">Reset</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Instructions Card -->
+          <div class="bg-white p-6 sm:p-8 rounded-3xl border border-[#e8e2d8] shadow-subtle space-y-6">
+
+            <!-- Card Header: Title & Interactive Progress -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e8e2d8] pb-5">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-2xl bg-[#fff7ed] border border-orange-200/80 text-[#c2410c] flex items-center justify-center shrink-0 shadow-2xs">
+                  <i data-lucide="chef-hat" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h2 class="font-serif font-bold text-2xl text-stone-900 tracking-tight">Cooking Directions</h2>
+                  <p class="text-xs text-stone-500 mt-0.5">Click steps to track your cooking progress</p>
+                </div>
+              </div>
+
+              <!-- Progress Indicator & Reset Steps -->
+              <div class="flex items-center gap-3 self-end sm:self-auto">
+                <div class="flex flex-col items-end gap-1.5">
+                  <span
+                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#faf8f5] border border-[#e8e2d8] rounded-full text-xs font-bold text-stone-700 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span id="steps-progress-text">0 of 6 completed</span>
+                  </span>
+                  <div
+                    class="w-32 sm:w-40 h-2 bg-stone-100 rounded-full overflow-hidden p-0.5 border border-stone-200/60">
+                    <div id="steps-progress-bar"
+                      class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-300 w-0">
+                    </div>
+                  </div>
+                </div>
+                <button id="btn-reset-steps"
+                  class="text-stone-400 hover:text-[#c2410c] p-2 rounded-xl hover:bg-[#faf8f5] border border-transparent hover:border-[#e8e2d8] transition cursor-pointer"
+                  title="Reset Completed Steps">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Numbered Steps List -->
+            <div id="detail-instructions-list" class="space-y-3.5">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Completed Banner -->
+            <div id="recipe-completed-banner"
+              class="hidden p-5 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-2">
+              <div class="inline-flex p-2 bg-emerald-100 text-emerald-700 rounded-full mb-1">
+                <i data-lucide="check" class="w-4 h-4"></i>
+              </div>
+              <h3 class="font-serif text-base font-bold text-emerald-900">Bon Appétit! You completed this dish!</h3>
+              <p class="text-xs text-emerald-700">Don't forget to snap a photo and tag <strong>#TastyNest</strong> on
+                Pinterest.</p>
+              <a href="https://www.pinterest.com/tastynest917" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 px-4 py-2 bg-pinterest text-white text-xs font-bold rounded-full shadow-xs hover:bg-red-700 transition mt-1">
+                <span>Share your creation on Pinterest</span>
+              </a>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SECTION: COMMUNITY 5-STAR RATINGS & REVIEWS -->
+      <!-- ========================================== -->
+      <div id="recipe-reviews-section"
+        class="bg-white rounded-3xl border border-[#e8e2d8] p-6 sm:p-10 shadow-2xs space-y-8">
+
+        <!-- Ratings Header & Breakdown Card -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-[#e8e2d8] pb-8">
+          <div>
+            <div
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-[11px] font-bold border border-amber-200 mb-2">
+              <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-500 text-amber-500"></i>
+              <span>Community Feedback</span>
+            </div>
+            <h2 class="font-serif font-bold text-2xl sm:text-3xl text-zinc-900">
+              Cooked This Dish? Leave a 5-Star Review
+            </h2>
+            <p class="text-xs sm:text-sm text-zinc-500 mt-1 max-w-lg">
+              Rate this recipe and share your culinary tweaks, ingredient substitutions, or family reactions with our
+              home cook community.
+            </p>
+          </div>
+
+          <div class="bg-[#faf8f5] rounded-2xl p-5 border border-[#e8e2d8] flex items-center gap-6 shrink-0">
+            <div class="text-center">
+              <span id="reviews-summary-avg"
+                class="font-serif text-4xl sm:text-5xl font-extrabold text-zinc-900 leading-none">4.9</span>
+              <div class="flex items-center justify-center text-amber-500 text-base my-1 tracking-widest"
+                id="reviews-summary-stars">
+                ★★★★★
+              </div>
+              <span id="reviews-summary-count" class="text-[11px] font-semibold text-zinc-500 block">428 verified
+                ratings</span>
+            </div>
+            <div class="h-14 w-px bg-[#e8e2d8]"></div>
+            <button type="button" id="btn-scroll-to-review-form"
+              class="px-4 py-2.5 bg-brand-700 hover:bg-brand-800 text-white rounded-full text-xs font-bold shadow-2xs transition flex items-center gap-1.5">
+              <i data-lucide="star" class="w-3.5 h-3.5 fill-white"></i>
+              <span>Write a Review</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5-Star Review Form -->
+        <div id="review-form-container" class="bg-[#faf8f5] rounded-2xl p-6 sm:p-8 border border-[#e8e2d8] space-y-5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-serif text-lg sm:text-xl font-bold text-zinc-900 flex items-center gap-2">
+              <i data-lucide="edit-3" class="w-4 h-4 text-brand-700"></i>
+              <span>Write Your 5-Star Review</span>
+            </h3>
+            <span class="text-[11px] text-zinc-400 font-medium">Publicly visible to all food lovers</span>
+          </div>
+
+          <form id="recipe-review-form" class="space-y-4">
+            <input type="hidden" id="review-rating-value" value="5">
+
+            <!-- Interactive 5-Star Selector -->
+            <div>
+              <label class="block text-xs font-bold text-zinc-700 mb-1.5">Your Rating *</label>
+              <div class="flex items-center gap-3 flex-wrap">
+                <div class="flex items-center gap-1 select-none text-2xl" id="star-picker-container">
+                  <button type="button" class="star-btn text-amber-400 hover:scale-125 transition cursor-pointer"
+                    data-star="1" title="1 Star - Needs Improvement">★</button>
+                  <button type="button" class="star-btn text-amber-400 hover:scale-125 transition cursor-pointer"
+                    data-star="2" title="2 Stars - Fair">★</button>
+                  <button type="button" class="star-btn text-amber-400 hover:scale-125 transition cursor-pointer"
+                    data-star="3" title="3 Stars - Good">★</button>
+                  <button type="button" class="star-btn text-amber-400 hover:scale-125 transition cursor-pointer"
+                    data-star="4" title="4 Stars - Delicious">★</button>
+                  <button type="button" class="star-btn text-amber-400 hover:scale-125 transition cursor-pointer"
+                    data-star="5" title="5 Stars - Outstanding Heirloom!">★</button>
+                </div>
+                <span id="star-rating-label"
+                  class="text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                  5.0 - Outstanding Heirloom Dish!
+                </span>
+              </div>
+            </div>
+
+            <!-- Name and Pen Name Field -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="review-author" class="block text-xs font-bold text-zinc-700 mb-1">Your Name or Pen Name
+                  *</label>
+                <input type="text" id="review-author" required placeholder="e.g. Dilshan Silva or Chef Nimali"
+                  class="w-full px-4 py-2.5 rounded-xl bg-white border border-[#e8e2d8] text-xs sm:text-sm text-zinc-800 focus:outline-none focus:ring-1 focus:ring-brand-700 shadow-2xs">
+              </div>
+              <div>
+                <label for="review-tip" class="block text-xs font-bold text-zinc-700 mb-1">Serving Note / Pairing
+                  (Optional)</label>
+                <input type="text" id="review-tip" placeholder="e.g. Paired with coconut rice and pol sambol"
+                  class="w-full px-4 py-2.5 rounded-xl bg-white border border-[#e8e2d8] text-xs sm:text-sm text-zinc-800 focus:outline-none focus:ring-1 focus:ring-brand-700 shadow-2xs">
+              </div>
+            </div>
+
+            <div>
+              <label for="review-comment" class="block text-xs font-bold text-zinc-700 mb-1">Your Review & Cooking
+                Experience *</label>
+              <textarea id="review-comment" rows="3" required
+                placeholder="How did the flavor turn out? Did you adjust any spices or simmer time? Help other home cooks recreate this dish!"
+                class="w-full px-4 py-2.5 rounded-xl bg-white border border-[#e8e2d8] text-xs sm:text-sm text-zinc-800 focus:outline-none focus:ring-1 focus:ring-brand-700 shadow-2xs"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between pt-1 flex-wrap gap-2">
+              <span class="text-[11px] text-zinc-500 inline-flex items-center gap-1.5"><i data-lucide="shield-check"
+                  class="w-3.5 h-3.5 text-emerald-600"></i> Verified Community Submission • Saves instantly & updates
+                public ratings</span>
+              <button type="submit" id="btn-submit-review"
+                class="px-6 py-2.5 bg-brand-700 hover:bg-brand-800 text-white rounded-full text-xs font-bold shadow-2xs transition flex items-center gap-1.5">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                <span>Submit 5-Star Review</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Public Reviews Feed -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-[#e8e2d8] pb-3">
+            <h3 class="font-serif text-lg font-bold text-zinc-900 flex items-center gap-2">
+              <i data-lucide="message-square" class="w-4 h-4 text-brand-700"></i>
+              <span>Verified Home Cook Reviews (<span id="detail-reviews-count-badge">0</span>)</span>
+            </h3>
+            <span class="text-[11px] text-zinc-400">Sorted by most recent</span>
+          </div>
+
+          <div id="detail-reviews-list" class="space-y-4">
+            <!-- Rendered dynamically via JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: SAVED FAVORITES / BOOKMARKS        -->
+    <!-- ========================================== -->
+    <section id="favorites-view" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <div class="flex items-center justify-between border-b border-[#e8e2d8] pb-5">
+        <div>
+          <h2 class="font-serif text-3xl font-bold text-zinc-900 flex items-center gap-2">
+            <i data-lucide="bookmark" class="w-6 h-6 text-brand-700 fill-brand-700"></i>
+            <span>My Saved Recipes</span>
+          </h2>
+          <p class="text-xs text-zinc-500 mt-1">Your bookmarked dishes stored locally in your browser</p>
+        </div>
+        <button id="btn-fav-back-home"
+          class="px-4 py-2 border border-[#e8e2d8] rounded-full text-xs font-bold hover:bg-stone-50 transition">
+          Browse Recipes
+        </button>
+      </div>
+
+      <div id="favorites-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered via JS -->
+      </div>
+
+      <div id="favorites-empty" class="text-center py-20 bg-white rounded-3xl border border-[#e8e2d8]">
+        <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-brand-700 mx-auto mb-3">
+          <i data-lucide="bookmark-x" class="w-6 h-6"></i>
+        </div>
+        <h3 class="font-serif text-lg font-bold text-zinc-900">No saved favorites yet</h3>
+        <p class="text-zinc-500 text-xs mt-1 max-w-sm mx-auto">Click the bookmark icon on any recipe card to save it
+          here for quick access while cooking!</p>
+        <button id="btn-fav-explore-now"
+          class="mt-4 px-5 py-2.5 bg-brand-700 text-white text-xs font-bold rounded-full hover:bg-brand-800 transition">
+          Explore Recipes
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 4: ADMIN PORTAL (/admin)              -->
+    <!-- ========================================== -->
+    <section id="admin-view" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 no-print">
+
+      <!-- Admin Login Box -->
+      <div id="admin-login-screen"
+        class="max-w-md mx-auto bg-white p-8 rounded-3xl border border-[#e8e2d8] shadow-xl space-y-6">
+        <div class="text-center space-y-3">
+          <div
+            class="w-16 h-16 rounded-2xl overflow-hidden shadow-xs border border-orange-200/80 mx-auto bg-[#fff9f2] p-1 flex items-center justify-center">
+            <img src="favicon-256.png" alt="Tasty Nest" class="w-full h-full object-contain">
+          </div>
+          <div>
+            <h2 class="font-serif text-2xl font-bold text-zinc-900">Tasty Nest Admin Portal</h2>
+            <p class="text-xs text-zinc-500 mt-1">Sign in to manage recipes, upload photos, and update nutrition</p>
+          </div>
+        </div>
+
+        <form id="admin-login-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-zinc-700 uppercase mb-1">Username or Email</label>
+            <div class="relative flex items-center">
+              <i data-lucide="user" class="w-4 h-4 text-zinc-400 absolute left-3.5"></i>
+              <input type="text" id="admin-input-username" required autocomplete="username"
+                placeholder="Username or Email"
+                class="w-full pl-10 pr-4 py-2.5 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl text-xs sm:text-sm focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-zinc-700 uppercase mb-1">Password</label>
+            <div class="relative flex items-center">
+              <i data-lucide="key" class="w-4 h-4 text-zinc-400 absolute left-3.5"></i>
+              <input type="password" id="admin-input-password" required autocomplete="current-password"
+                placeholder="Enter password"
+                class="w-full pl-10 pr-10 py-2.5 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl text-xs sm:text-sm focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+              <button type="button" id="btn-toggle-password-visibility"
+                class="absolute right-3 text-zinc-400 hover:text-zinc-600 transition" title="Show / Hide Password">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit"
+            class="w-full py-2.5 bg-brand-700 hover:bg-brand-800 text-white rounded-full font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5">
+            <i data-lucide="log-in" class="w-4 h-4"></i>
+            <span>Sign In to Dashboard</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Admin Dashboard Content -->
+      <div id="admin-dashboard-screen" class="hidden space-y-6">
+
+        <!-- Executive Admin Header Bar -->
+        <div
+          class="bg-white p-5 sm:p-6 rounded-3xl border border-[#e8e2d8] shadow-subtle flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div
+              class="w-11 h-11 rounded-2xl bg-[#181513] text-white flex items-center justify-center font-serif font-black text-xl shadow-subtle shrink-0">
+              TN
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="font-serif text-2xl font-bold text-stone-900">Tasty Nest Executive CMS</h2>
+                <span
+                  class="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold tracking-wide">●
+                  System Active</span>
+              </div>
+              <p class="text-xs text-stone-500 mt-0.5">Logged in as <strong class="text-stone-800"
+                  id="admin-user-display">Administrator</strong></p>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex items-center gap-2 flex-wrap self-stretch sm:self-auto justify-end">
+            <button id="btn-admin-add-recipe"
+              class="px-4 py-2 bg-[#c2410c] hover:bg-[#9a3412] text-white rounded-xl text-xs font-bold shadow-subtle transition flex items-center gap-1.5 cursor-pointer">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>+ Add New Recipe</span>
+            </button>
+            <button id="btn-admin-export-json"
+              class="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              title="Export database as JSON backup">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Backup</span>
+            </button>
+            <button id="btn-admin-reset-db"
+              class="px-3 py-2 bg-stone-100 hover:bg-rose-50 text-stone-600 hover:text-rose-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              title="Reset all database records to factory seed recipes">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Reset</span>
+            </button>
+            <button id="btn-admin-logout"
+              class="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Executive KPI Metrics Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="admin-kpi-card">
+            <div>
+              <span class="block text-[11px] font-bold text-stone-400 uppercase tracking-wider">Catalog Recipes</span>
+              <span class="text-2xl font-serif font-extrabold text-stone-900 mt-1 block"
+                id="kpi-recipes-count">12</span>
+              <span class="text-[11px] text-stone-500 font-medium">Across 5 Collections</span>
+            </div>
+            <div
+              class="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 text-[#c2410c] flex items-center justify-center shrink-0">
+              <i data-lucide="book-open" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="admin-kpi-card cursor-pointer hover:border-amber-300 transition" id="kpi-card-reviews">
+            <div>
+              <span class="block text-[11px] font-bold text-stone-400 uppercase tracking-wider">Verified Reviews</span>
+              <span class="text-2xl font-serif font-extrabold text-stone-900 mt-1 block"
+                id="kpi-reviews-count">428</span>
+              <span class="text-[11px] text-amber-600 font-bold">★ 4.9 Average Rating</span>
+            </div>
+            <div
+              class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+              <i data-lucide="star" class="w-5 h-5 fill-amber-500"></i>
+            </div>
+          </div>
+
+          <div class="admin-kpi-card cursor-pointer hover:border-blue-300 transition" id="kpi-card-subscribers">
+            <div>
+              <span class="block text-[11px] font-bold text-stone-400 uppercase tracking-wider">Subscriber Leads</span>
+              <span class="text-2xl font-serif font-extrabold text-stone-900 mt-1 block"
+                id="kpi-subscribers-count">0</span>
+              <span class="text-[11px] text-stone-500 font-medium">Meal Plan Signups</span>
+            </div>
+            <div
+              class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+              <i data-lucide="mail" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="admin-kpi-card cursor-pointer hover:border-red-300 transition" id="btn-manage-pinterest-videos">
+            <div>
+              <span class="block text-[11px] font-bold text-stone-400 uppercase tracking-wider">Pinterest Boards</span>
+              <span class="text-2xl font-serif font-extrabold text-stone-900 mt-1 block" id="kpi-boards-count">4</span>
+              <span class="text-[11px] text-stone-500 font-medium">Live Video Pins</span>
+            </div>
+            <div
+              class="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center shrink-0">
+              <i data-lucide="video" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Management Navigation Hub (Opens specific features) -->
+        <div
+          class="bg-white p-2.5 rounded-2xl border border-[#e8e2d8] shadow-subtle flex items-center gap-2 overflow-x-auto">
+          <button class="admin-nav-tab active">
+            <i data-lucide="utensils" class="w-4 h-4"></i>
+            <span>Recipes Catalog</span>
+          </button>
+          <button id="btn-admin-customize-hero" class="admin-nav-tab" title="Customize Homepage Featured Dish">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i>
+            <span>Customize Hero Dish</span>
+          </button>
+          <button id="btn-admin-manage-pboard-videos" class="admin-nav-tab" title="Configure Pinterest Hover Videos">
+            <i data-lucide="video" class="w-4 h-4 text-red-600"></i>
+            <span>Pinterest Videos</span>
+          </button>
+          <button id="btn-admin-reviews" class="admin-nav-tab" title="Moderate 5-Star Reviews">
+            <i data-lucide="star" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+            <span>Manage Reviews</span>
+            <span id="admin-reviews-badge"
+              class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-black">0</span>
+          </button>
+          <button id="btn-admin-messages" class="admin-nav-tab" title="View Subscriber Emails & Leads">
+            <i data-lucide="mail" class="w-4 h-4 text-blue-600"></i>
+            <span>Subscriber Leads</span>
+            <span id="admin-subscribers-badge"
+              class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 text-[10px] font-black">0</span>
+          </button>
+        </div>
+
+        <!-- Category Filter & Dedicated Category Upload Bar in Admin Panel -->
+        <div class="bg-white p-5 rounded-3xl border border-[#e8e2d8] shadow-2xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Manage by Category</span>
+              <p class="text-xs text-zinc-700 font-semibold">Filter recipes by category or upload specifically into a
+                chosen collection:</p>
+            </div>
+            <div class="relative flex items-center">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-stone-400 absolute left-3"></i>
+              <input type="text" id="admin-recipes-search" placeholder="Filter by title..."
+                class="pl-8 pr-3 py-1.5 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#c2410c]/20 focus:border-[#c2410c] text-stone-800 placeholder-stone-400 transition">
+            </div>
+            <button id="btn-admin-cat-upload"
+              class="px-4 py-2 bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold rounded-full shadow-2xs transition flex items-center gap-1.5 self-start sm:self-auto">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+              <span id="admin-cat-upload-label">+ Upload New Recipe</span>
+            </button>
+          </div>
+
+          <!-- Category Filter Tabs for Admin -->
+          <div class="flex items-center gap-2 overflow-x-auto pb-1" id="admin-category-tabs">
+            <button
+              class="admin-cat-tab active px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-brand-700 text-white shadow-2xs cursor-pointer"
+              data-admin-cat="All">
+              All (<span id="admin-cat-count-all">12</span>)
+            </button>
+            <button
+              class="admin-cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-stone-100 text-zinc-700 hover:bg-stone-200 cursor-pointer"
+              data-admin-cat="Quick Dinners">
+              Quick Dinners (<span id="admin-cat-count-quick">2</span>)
+            </button>
+            <button
+              class="admin-cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-stone-100 text-zinc-700 hover:bg-stone-200 cursor-pointer"
+              data-admin-cat="Desserts">
+              Desserts (<span id="admin-cat-count-desserts">2</span>)
+            </button>
+            <button
+              class="admin-cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-stone-100 text-zinc-700 hover:bg-stone-200 cursor-pointer"
+              data-admin-cat="Healthy Eats">
+              Healthy Eats (<span id="admin-cat-count-healthy">2</span>)
+            </button>
+            <button
+              class="admin-cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-stone-100 text-zinc-700 hover:bg-stone-200 cursor-pointer"
+              data-admin-cat="Sri Lankan & Asian">
+              Sri Lankan & Asian (<span id="admin-cat-count-srilankan">3</span>)
+            </button>
+            <button
+              class="admin-cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold transition bg-stone-100 text-zinc-700 hover:bg-stone-200 cursor-pointer"
+              data-admin-cat="Drinks">
+              Drinks (<span id="admin-cat-count-drinks">3</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- Recipes Table -->
+        <div class="bg-white rounded-3xl border border-[#e8e2d8] shadow-2xs overflow-hidden">
+          <div class="p-5 border-b border-[#e8e2d8] flex items-center justify-between">
+            <div>
+              <h3 class="font-serif text-base font-bold text-zinc-900" id="admin-table-heading">All Published Recipes
+              </h3>
+              <span class="text-xs text-zinc-500" id="admin-table-count">12 recipes</span>
+            </div>
+            <span class="text-[11px] text-zinc-400 font-medium">Click Edit to modify ingredients, steps & photos</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-zinc-600">
+              <thead class="bg-[#faf8f5] uppercase font-bold text-zinc-500 border-b border-[#e8e2d8]">
+                <tr>
+                  <th class="px-6 py-3.5">Recipe</th>
+                  <th class="px-6 py-3.5">Category</th>
+                  <th class="px-6 py-3.5">Time</th>
+                  <th class="px-6 py-3.5">Servings</th>
+                  <th class="px-6 py-3.5">Author</th>
+                  <th class="px-6 py-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-recipes-tbody" class="divide-y divide-[#e8e2d8]">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADD / EDIT RECIPE FORM              -->
+  <!-- ========================================== -->
+  <div id="recipe-modal"
+    class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div
+      class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-[#e8e2d8] p-6 sm:p-8 space-y-6">
+
+      <div class="flex items-center justify-between border-b border-[#e8e2d8] pb-4">
+        <div>
+          <h2 id="modal-form-title" class="font-serif text-2xl font-bold text-zinc-900">Create New Recipe</h2>
+          <p class="text-xs text-zinc-500">Fill in the details to publish your dish to Tasty Nest</p>
+        </div>
+        <button id="btn-close-modal"
+          class="p-2 text-zinc-400 hover:text-zinc-600 rounded-full hover:bg-stone-100 transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="recipe-editor-form" class="space-y-5 text-xs">
+        <input type="hidden" id="form-recipe-id">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block font-bold text-zinc-700 uppercase mb-1">Recipe Title *</label>
+            <input type="text" id="form-title" required placeholder="e.g., Spicy Sri Lankan Black Pepper Crab"
+              class="w-full px-3.5 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-700 uppercase mb-1">Category *</label>
+            <select id="form-category"
+              class="w-full px-3.5 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+              <option value="Quick Dinners">Quick Dinners (15-Min Dinners)</option>
+              <option value="Desserts">Desserts (Baking & Sweets)</option>
+              <option value="Healthy Eats">Healthy Eats (Plant-Based & Veggie)</option>
+              <option value="Sri Lankan & Asian">Sri Lankan & Asian (Heirloom Specials)</option>
+              <option value="Drinks">Drinks (Coolers, Ceylon Teas & Mocktails)</option>
+              <option value="Breakfast & Brunch">Breakfast & Brunch</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-zinc-700 uppercase mb-1">Author Name / Credit</label>
+          <input type="text" id="form-author" placeholder="e.g., Tasty Nest Culinary Lab & Dilrukshi P."
+            class="w-full px-3.5 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl focus:bg-white focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-bold text-zinc-700 uppercase mb-1">Description / Summary *</label>
+          <textarea id="form-description" required rows="2" placeholder="Brief mouthwatering overview of the dish..."
+            class="w-full px-3.5 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700"></textarea>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block font-bold text-zinc-700 uppercase mb-1">Prep Time (min)</label>
+            <input type="number" id="form-prep-time" min="0" value="15"
+              class="w-full px-3 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-700 uppercase mb-1">Cook Time (min)</label>
+            <input type="number" id="form-cook-time" min="0" value="25"
+              class="w-full px-3 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-700 uppercase mb-1">Servings</label>
+            <input type="number" id="form-servings" min="1" value="4"
+              class="w-full px-3 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl">
+          </div>
+        </div>
+
+        <!-- MULTI-IMAGE GALLERY UPLOADER (UP TO 5 PHOTOS) -->
+        <div class="space-y-3 p-4 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8]">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <label class="block font-bold text-zinc-800 uppercase text-xs flex items-center gap-1.5">
+                <i data-lucide="images" class="w-4 h-4 text-brand-700"></i>
+                <span>Recipe Photo Gallery (Upload up to 5 Photos) *</span>
+              </label>
+              <p class="text-[11px] text-zinc-500">First photo will be the main Cover Photo. You can upload up to 5
+                photos for the gallery carousel.</p>
+            </div>
+            <span id="gallery-count-badge"
+              class="px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 text-[11px] font-bold">
+              0 / 5 Photos
+            </span>
+          </div>
+
+          <!-- Upload Controls: File picker & URL Adder -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+            <div class="flex items-center gap-2 flex-wrap">
+              <label
+                class="px-3.5 py-2 bg-brand-700 hover:bg-brand-800 text-white rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1.5 cursor-pointer shrink-0">
+                <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                <span>Choose Photos (1-5)</span>
+                <input type="file" id="form-gallery-files" accept="image/*" multiple class="hidden">
+              </label>
+              <span class="text-[11px] text-zinc-400">Select multiple files (up to 5 photos)</span>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <input type="text" id="form-gallery-url-input" placeholder="Or paste image URL (https://...)"
+                class="flex-1 px-3 py-1.5 bg-white border border-[#e8e2d8] rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-brand-700">
+              <button type="button" id="btn-add-gallery-url"
+                class="px-3 py-1.5 bg-stone-800 hover:bg-black text-white rounded-xl text-xs font-bold transition shrink-0">
+                + Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Compression & Upload Progress Bar -->
+          <div id="gallery-upload-progress"
+            class="hidden items-center gap-2.5 p-3 bg-amber-50 border border-amber-200/80 rounded-xl text-xs text-amber-900 font-semibold animate-pulse">
+            <div class="w-4 h-4 border-2 border-brand-700 border-t-transparent rounded-full animate-spin shrink-0">
+            </div>
+            <span id="gallery-upload-progress-text">Optimizing and uploading photos...</span>
+          </div>
+
+          <!-- 5-Slot Interactive Image Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1" id="form-gallery-slots-container">
+            <!-- Rendered dynamically by JS: 5 slot cards with preview, cover badge, make-cover, and delete buttons -->
+          </div>
+
+          <!-- Hidden storage for cover image -->
+          <input type="hidden" id="form-image-url" value="">
+        </div>
+
+        <!-- Recipe Video Tutorial (Google Drive, YouTube, MP4) -->
+        <div class="space-y-1.5 p-4 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8]">
+          <label class="block font-bold text-zinc-800 uppercase text-xs flex items-center gap-1.5">
+            <i data-lucide="video" class="w-4 h-4 text-brand-700"></i>
+            <span>Recipe Video Tutorial (Google Drive, YouTube, or MP4)</span>
+          </label>
+          <p class="text-[11px] text-zinc-500">Paste your Google Drive video link (e.g.,
+            https://drive.google.com/file/d/.../view) or a YouTube / MP4 video link.</p>
+          <div class="flex items-center gap-2">
+            <input type="text" id="form-video-url"
+              placeholder="https://drive.google.com/file/d/... or YouTube video URL"
+              class="w-full px-3.5 py-2 bg-white border border-[#e8e2d8] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 text-xs">
+          </div>
+        </div>
+
+        <!-- Dynamic Ingredients -->
+        <div class="space-y-2 p-4 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8]">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-zinc-800 uppercase flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-brand-700"></i>
+              <span>Ingredients List</span>
+            </label>
+            <button type="button" id="btn-add-ingredient-row"
+              class="font-bold text-brand-700 hover:text-brand-800 bg-white px-3 py-1 rounded-full border border-[#e8e2d8] shadow-2xs">
+              + Add Ingredient
+            </button>
+          </div>
+          <div id="form-ingredients-rows" class="space-y-2">
+            <!-- Row items -->
+          </div>
+        </div>
+
+        <!-- Dynamic Instructions -->
+        <div class="space-y-2 p-4 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8]">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-zinc-800 uppercase flex items-center gap-1.5">
+              <i data-lucide="list-ordered" class="w-3.5 h-3.5 text-brand-700"></i>
+              <span>Step-by-Step Instructions</span>
+            </label>
+            <button type="button" id="btn-add-instruction-row"
+              class="font-bold text-brand-700 hover:text-brand-800 bg-white px-3 py-1 rounded-full border border-[#e8e2d8] shadow-2xs">
+              + Add Step
+            </button>
+          </div>
+          <div id="form-instructions-rows" class="space-y-2">
+            <!-- Step items -->
+          </div>
+        </div>
+
+        <!-- Nutrition -->
+        <div class="p-4 bg-orange-50/50 rounded-2xl border border-orange-200/60 space-y-2">
+          <label class="font-bold text-zinc-800 uppercase block">Estimated Nutrition (per serving)</label>
+          <div class="grid grid-cols-4 gap-2">
+            <div>
+              <span class="block text-[10px] text-zinc-500 font-bold mb-1">Calories</span>
+              <input type="number" id="form-nut-cal" value="450"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-xl text-xs">
+            </div>
+            <div>
+              <span class="block text-[10px] text-zinc-500 font-bold mb-1">Protein</span>
+              <input type="text" id="form-nut-protein" value="38g"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-xl text-xs">
+            </div>
+            <div>
+              <span class="block text-[10px] text-zinc-500 font-bold mb-1">Carbs</span>
+              <input type="text" id="form-nut-carbs" value="22g"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-xl text-xs">
+            </div>
+            <div>
+              <span class="block text-[10px] text-zinc-500 font-bold mb-1">Fat</span>
+              <input type="text" id="form-nut-fat" value="18g"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-xl text-xs">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#e8e2d8]">
+          <button type="button" id="btn-cancel-modal"
+            class="px-4 py-2 rounded-full border border-[#e8e2d8] font-bold text-zinc-600 hover:bg-stone-50 transition">
+            Cancel
+          </button>
+          <button type="submit"
+            class="px-5 py-2 bg-brand-700 hover:bg-brand-800 text-white rounded-full font-bold shadow-2xs transition">
+            Save & Publish Recipe
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: CONFIGURE PINTEREST VIDEO BOARDS    -->
+  <!-- ========================================== -->
+  <div id="pinterest-video-modal"
+    class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div
+      class="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-[#e8e2d8] p-6 sm:p-8 space-y-5">
+
+      <div class="flex items-center justify-between border-b border-[#e8e2d8] pb-3">
+        <div class="flex items-center gap-2.5">
+          <span
+            class="w-7 h-7 rounded-full bg-pinterest text-white flex items-center justify-center text-xs font-black shadow-xs">P</span>
+          <div>
+            <h2 class="font-serif text-xl font-bold text-zinc-900">Pinterest Video Pins</h2>
+            <p class="text-[11px] text-zinc-500">Configure your Pinterest video links or upload local MP4 video clips
+            </p>
+          </div>
+        </div>
+        <button id="btn-close-pboard-modal"
+          class="p-1.5 text-zinc-400 hover:text-zinc-600 rounded-full hover:bg-stone-100 transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Select Board Dropdown / Tabs -->
+      <div>
+        <label class="block text-[11px] font-bold text-zinc-600 uppercase mb-1">Select Board to Edit</label>
+        <div id="pboard-tabs"
+          class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8]">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <!-- Edit Form -->
+      <form id="pboard-edit-form" class="space-y-4 text-xs">
+        <input type="hidden" id="pboard-form-id">
+
+        <div>
+          <label class="block font-bold text-zinc-700 uppercase mb-1">Board Title</label>
+          <input type="text" id="pboard-form-title" required
+            class="w-full px-3 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 text-xs">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-zinc-700 uppercase mb-1">Pin Count Label</label>
+            <input type="text" id="pboard-form-count" placeholder="e.g. 546 Pins"
+              class="w-full px-3 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl focus:bg-white focus:outline-none text-xs">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-700 uppercase mb-1">Pinterest URL (on click)</label>
+            <input type="url" id="pboard-form-url" placeholder="https://www.pinterest.com/..."
+              class="w-full px-3 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl focus:bg-white focus:outline-none text-xs">
+          </div>
+        </div>
+
+        <!-- Video Source Section -->
+        <div class="p-4 bg-orange-50/50 rounded-2xl border border-orange-200/60 space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-zinc-800 uppercase flex items-center gap-1.5 text-xs">
+              <i data-lucide="film" class="w-4 h-4 text-brand-700"></i>
+              <span>Hover Live Video Stream</span>
+            </label>
+            <span
+              class="text-[10px] text-brand-700 font-bold bg-white px-2 py-0.5 rounded-full border border-orange-200">Plays
+              live on hover</span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-zinc-600 mb-1">Video Link (MP4 or Pinterest Direct Video
+              URL)</label>
+            <input type="text" id="pboard-form-video-url" placeholder="https://... video url (.mp4)"
+              class="w-full px-3 py-2 bg-white border border-[#e8e2d8] rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-700 text-xs">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-zinc-600 mb-1">Or Upload Local Video File (.mp4,
+              .webm)</label>
+            <input type="file" id="pboard-form-video-file" accept="video/mp4,video/webm"
+              class="text-zinc-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:bg-orange-100 file:text-brand-800 hover:file:bg-orange-200">
+            <span class="block text-[10px] text-zinc-400 mt-1">Saves directly into Dexie / IndexedDB for instant offline
+              playback.</span>
+          </div>
+
+          <!-- Live Preview -->
+          <div class="pt-1">
+            <span class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Video Test Preview</span>
+            <div
+              class="w-full h-32 rounded-xl overflow-hidden bg-black relative border border-zinc-700 flex items-center justify-center">
+              <video id="pboard-form-preview-video" muted loop playsinline class="w-full h-full object-cover hidden"
+                src=""></video>
+              <div id="pboard-preview-empty" class="text-zinc-400 text-xs flex items-center gap-1.5">
+                <i data-lucide="play-circle" class="w-4 h-4"></i>
+                <span>Enter link or upload video to preview</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-zinc-700 uppercase mb-1">Cover Poster Image URL</label>
+          <input type="text" id="pboard-form-image" placeholder="Image URL (shown before hover)"
+            class="w-full px-3 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl focus:bg-white focus:outline-none text-xs">
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-[#e8e2d8]">
+          <button type="button" id="btn-reset-pboard-defaults" class="text-xs text-rose-600 hover:underline font-bold">
+            Reset to Defaults
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button type="button" id="btn-cancel-pboard-modal"
+              class="px-4 py-2 rounded-full border border-[#e8e2d8] font-bold text-zinc-600 hover:bg-stone-50 transition">
+              Cancel
+            </button>
+            <button type="submit"
+              class="px-5 py-2 bg-brand-700 hover:bg-brand-800 text-white rounded-full font-bold shadow-2xs transition">
+              Save Video Link
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADMIN SUBSCRIBER MESSAGES & LEADS   -->
+  <!-- ========================================== -->
+  <div id="admin-subscribers-modal"
+    class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div
+      class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-[#e8e2d8] overflow-hidden my-8 animate-fade-in flex flex-col max-h-[90vh]">
+
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-[#e8e2d8] flex items-center justify-between bg-[#faf8f5]">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
+            <i data-lucide="mail" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="font-serif text-2xl font-bold text-zinc-900 flex items-center gap-2">
+              <span>Subscriber Messages & Leads</span>
+              <span id="subscribers-modal-count-pill"
+                class="text-xs px-2.5 py-0.5 rounded-full bg-amber-600 text-white font-sans font-bold">0</span>
+            </h2>
+            <p class="text-xs text-zinc-500 mt-0.5">Emails collected from 'Get 7-Day Recipe Book' and weekly meal plan
+              claims</p>
+          </div>
+        </div>
+        <button id="btn-close-subscribers-modal"
+          class="p-2 text-zinc-400 hover:text-zinc-600 rounded-full hover:bg-stone-100 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="p-4 px-6 bg-white border-b border-[#e8e2d8] flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-2">
+          <button id="btn-copy-all-subscribers"
+            class="px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-zinc-800 rounded-full text-xs font-bold transition flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy All Emails</span>
+          </button>
+          <button id="btn-export-subscribers-csv"
+            class="px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-zinc-800 rounded-full text-xs font-bold transition flex items-center gap-1.5">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Export CSV</span>
+          </button>
+        </div>
+        <span class="text-[11px] text-zinc-400">All subscriber emails saved securely in IndexedDB</span>
+      </div>
+
+      <!-- Subscribers Table Body -->
+      <div class="overflow-y-auto flex-1 p-6">
+        <div class="rounded-2xl border border-[#e8e2d8] overflow-hidden">
+          <table class="w-full text-left text-xs text-zinc-600">
+            <thead class="bg-[#faf8f5] uppercase font-bold text-zinc-500 border-b border-[#e8e2d8]">
+              <tr>
+                <th class="px-5 py-3">#</th>
+                <th class="px-5 py-3">Subscriber Email</th>
+                <th class="px-5 py-3">Source / Campaign</th>
+                <th class="px-5 py-3">Date Subscribed</th>
+                <th class="px-5 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-subscribers-tbody" class="divide-y divide-[#e8e2d8]">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 px-6 border-t border-[#e8e2d8] bg-[#faf8f5] flex items-center justify-end">
+        <button id="btn-close-subscribers-footer"
+          class="px-5 py-2 rounded-full border border-[#e8e2d8] font-bold text-xs text-zinc-700 hover:bg-stone-100 transition">
+          Close Inbox
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADMIN 5-STAR REVIEWS MODERATION     -->
+  <!-- ========================================== -->
+  <div id="admin-reviews-modal"
+    class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div
+      class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-[#e8e2d8] overflow-hidden my-8 animate-fade-in flex flex-col max-h-[90vh]">
+
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-[#e8e2d8] flex items-center justify-between bg-[#faf8f5]">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
+            <i data-lucide="star" class="w-5 h-5 fill-amber-500 text-amber-500"></i>
+          </div>
+          <div>
+            <h2 class="font-serif text-2xl font-bold text-zinc-900 flex items-center gap-2">
+              <span>Recipe Reviews Moderation</span>
+              <span id="reviews-modal-count-pill"
+                class="text-xs px-2.5 py-0.5 rounded-full bg-amber-600 text-white font-sans font-bold">0</span>
+            </h2>
+            <p class="text-xs text-zinc-500 mt-0.5">Manage and moderate community 5-star ratings and reviews submitted
+              across recipes</p>
+          </div>
+        </div>
+        <button id="btn-close-reviews-modal"
+          class="p-2 text-zinc-400 hover:text-zinc-600 rounded-full hover:bg-stone-100 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Action & Filter Bar -->
+      <div class="p-4 px-6 bg-white border-b border-[#e8e2d8] flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-3">
+          <label class="text-xs font-bold text-zinc-700">Filter Recipe:</label>
+          <select id="admin-reviews-filter-recipe"
+            class="px-3 py-1.5 rounded-xl bg-stone-50 border border-[#e8e2d8] text-xs font-medium text-zinc-800">
+            <option value="all">All Recipes</option>
+          </select>
+        </div>
+        <span class="text-[11px] text-zinc-400">Deleting a review automatically recalculates recipe star ratings</span>
+      </div>
+
+      <!-- Reviews Table Body -->
+      <div class="overflow-y-auto flex-1 p-6">
+        <div class="rounded-2xl border border-[#e8e2d8] overflow-hidden">
+          <table class="w-full text-left text-xs text-zinc-600">
+            <thead class="bg-[#faf8f5] uppercase font-bold text-zinc-500 border-b border-[#e8e2d8]">
+              <tr>
+                <th class="px-5 py-3">Recipe</th>
+                <th class="px-5 py-3">Rating</th>
+                <th class="px-5 py-3">Reviewer</th>
+                <th class="px-5 py-3">Comment</th>
+                <th class="px-5 py-3">Date</th>
+                <th class="px-5 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-reviews-tbody" class="divide-y divide-[#e8e2d8]">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 px-6 border-t border-[#e8e2d8] bg-[#faf8f5] flex items-center justify-end">
+        <button id="btn-close-reviews-footer"
+          class="px-5 py-2 rounded-full border border-[#e8e2d8] font-bold text-xs text-zinc-700 hover:bg-stone-100 transition">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: CUSTOMIZE HERO FEATURED DISH       -->
+  <!-- ========================================== -->
+  <div id="hero-customizer-modal"
+    class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div
+      class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-[#e8e2d8] p-6 sm:p-8 space-y-6">
+
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-[#e8e2d8] pb-4">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="font-serif text-xl sm:text-2xl font-bold text-zinc-900">Customize Homepage Hero Dish</h2>
+            <p class="text-xs text-zinc-500 mt-0.5">Control the featured dish of the day, title, photo, stats, and chef
+              badges</p>
+          </div>
+        </div>
+        <button id="btn-close-hero-modal" type="button"
+          class="p-2 text-zinc-400 hover:text-zinc-600 rounded-full hover:bg-stone-100 transition cursor-pointer"
+          title="Close">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Quick Auto-Fill from Recipe -->
+      <div class="bg-[#faf8f5] p-4 rounded-2xl border border-[#e8e2d8] space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="block text-xs font-bold text-zinc-700 uppercase">Quick Auto-Fill from Recipe</label>
+          <span class="text-[11px] text-zinc-400">Pulls title, photo, cook time & description</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="hero-form-select-recipe"
+            class="flex-1 min-w-0 px-3.5 py-2 bg-white border border-[#e8e2d8] rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-700">
+            <option value="">-- Choose from your published recipes --</option>
+          </select>
+          <button type="button" id="btn-hero-autofill"
+            class="px-4 py-2 bg-stone-900 hover:bg-black text-white text-xs font-bold rounded-xl transition shadow-2xs shrink-0 whitespace-nowrap cursor-pointer">
+            Auto-Fill
+          </button>
+        </div>
+      </div>
+
+      <!-- Customization Form -->
+      <form id="hero-customizer-form" class="space-y-5 text-xs">
+
+        <!-- Recipe Link ID -->
+        <div>
+          <label class="block font-bold text-zinc-700 uppercase mb-1">Target Recipe ("View Full Recipe" opens
+            this)</label>
+          <select id="hero-form-target-recipe-id" required
+            class="w-full px-3.5 py-2.5 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+            <!-- Populated dynamically via JS -->
+          </select>
+        </div>
+
+        <!-- Title & Subtitle -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-zinc-700 uppercase mb-1">Main Dish Title</label>
+            <input type="text" id="hero-form-title" required placeholder="e.g. Spicy Sri Lankan Black Pepper Crab Curry"
+              class="w-full px-3.5 py-2.5 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-700 uppercase mb-1">Subtitle / Accompaniment (Playfair Font)</label>
+            <input type="text" id="hero-form-subtitle" placeholder="e.g. with Fragrant Coconut Rice"
+              class="w-full px-3.5 py-2.5 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block font-bold text-zinc-700 uppercase mb-1">Enticing Editorial Description</label>
+          <textarea id="hero-form-description" rows="3" required placeholder="Write a mouth-watering description..."
+            class="w-full px-3.5 py-2.5 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 leading-relaxed"></textarea>
+        </div>
+
+        <!-- Dish Image with Preview -->
+        <div class="space-y-2">
+          <label class="block font-bold text-zinc-700 uppercase">Cover Photo</label>
+          <div class="flex items-start gap-4">
+            <img id="hero-form-preview" src="sri_lankan_crab_curry.jpg" alt="Preview"
+              class="w-20 h-20 rounded-2xl object-cover border border-[#e8e2d8] shadow-2xs shrink-0 bg-stone-100">
+            <div class="flex-1 space-y-2">
+              <input type="text" id="hero-form-image-url" placeholder="https://... or your-photo.jpg"
+                class="w-full px-3.5 py-2 bg-[#faf8f5] border border-[#e8e2d8] rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+              <div class="flex items-center gap-2">
+                <label
+                  class="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 border border-[#e8e2d8] rounded-lg text-[11px] font-bold text-zinc-700 cursor-pointer flex items-center gap-1.5 transition">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                  <span>Upload from Device</span>
+                  <input type="file" id="hero-form-file-input" accept="image/*" class="hidden">
+                </label>
+                <span id="hero-form-upload-status" class="text-[11px] text-zinc-400">JPG, PNG, or WebP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Stats Grid -->
+        <div class="p-4 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8] space-y-3">
+          <span class="block text-[11px] font-bold text-zinc-500 uppercase">4 Stat Pills</span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block font-medium text-zinc-600 text-[10px] uppercase mb-0.5">Rating</label>
+              <input type="text" id="hero-form-rating" placeholder="4.9"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-bold text-zinc-800">
+              <input type="text" id="hero-form-reviews" placeholder="428 Verified Reviews"
+                class="w-full px-2 py-1 mt-1 bg-white border border-[#e8e2d8] rounded-lg text-[10px] text-zinc-500">
+            </div>
+            <div>
+              <label class="block font-medium text-zinc-600 text-[10px] uppercase mb-0.5">Cook Time</label>
+              <input type="text" id="hero-form-cooktime" placeholder="35 Mins"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-bold text-zinc-800">
+              <input type="text" id="hero-form-cooktime-sub" placeholder="Total Cook Time"
+                class="w-full px-2 py-1 mt-1 bg-white border border-[#e8e2d8] rounded-lg text-[10px] text-zinc-500">
+            </div>
+            <div>
+              <label class="block font-medium text-zinc-600 text-[10px] uppercase mb-0.5">Calories</label>
+              <input type="text" id="hero-form-calories" placeholder="450 kcal"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-bold text-zinc-800">
+              <input type="text" id="hero-form-calories-sub" placeholder="Nutritious / Serving"
+                class="w-full px-2 py-1 mt-1 bg-white border border-[#e8e2d8] rounded-lg text-[10px] text-zinc-500">
+            </div>
+            <div>
+              <label class="block font-medium text-zinc-600 text-[10px] uppercase mb-0.5">Difficulty</label>
+              <input type="text" id="hero-form-difficulty" placeholder="Intermediate"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-bold text-zinc-800">
+              <input type="text" id="hero-form-diff-sub" placeholder="One-Pot Magic"
+                class="w-full px-2 py-1 mt-1 bg-white border border-[#e8e2d8] rounded-lg text-[10px] text-zinc-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Flavor Base Card & Pinterest -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8] space-y-2">
+            <span class="block text-[11px] font-bold text-zinc-500 uppercase">Key Flavor Base Overlay</span>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block text-[10px] text-zinc-500 mb-0.5">Badge Letters</label>
+                <input type="text" id="hero-form-flavor-initial" placeholder="TL" maxlength="3"
+                  class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-bold uppercase text-center">
+              </div>
+              <div class="col-span-2">
+                <label class="block text-[10px] text-zinc-500 mb-0.5">Flavor Note</label>
+                <input type="text" id="hero-form-flavor-base" placeholder="Crushed Kampot Pepper & Raw Coconut"
+                  class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-medium">
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] text-zinc-500 mb-0.5">Ingredients Count Label</label>
+              <input type="text" id="hero-form-flavor-ingredients" placeholder="9 Ingredients"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-medium">
+            </div>
+          </div>
+
+          <div class="p-4 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8] space-y-2">
+            <span class="block text-[11px] font-bold text-zinc-500 uppercase">Pinterest Pin Button</span>
+            <div>
+              <label class="block text-[10px] text-zinc-500 mb-0.5">Pinterest Share URL</label>
+              <input type="url" id="hero-form-pinterest-url" placeholder="https://www.pinterest.com/..."
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-medium">
+            </div>
+            <p class="text-[10px] text-zinc-400">Visitors can click 'Save to Pinterest' or the top-right Pin button
+              directly on the hero dish.</p>
+          </div>
+        </div>
+
+        <!-- Chef Attribution Row -->
+        <div class="p-4 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8] space-y-3">
+          <span class="block text-[11px] font-bold text-zinc-500 uppercase">Chef Attribution & Series</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[10px] text-zinc-500 mb-0.5">Chef Name</label>
+              <input type="text" id="hero-form-chef-name" placeholder="Dilrukshi P."
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-bold text-zinc-800">
+            </div>
+            <div>
+              <label class="block text-[10px] text-zinc-500 mb-0.5">Verification Badge</label>
+              <input type="text" id="hero-form-chef-badge" placeholder="Verified Chef"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-medium">
+            </div>
+            <div>
+              <label class="block text-[10px] text-zinc-500 mb-0.5">Series Tag</label>
+              <input type="text" id="hero-form-series-tag" placeholder="Heirloom Heritage Series"
+                class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-medium">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] text-zinc-500 mb-0.5">Testing / Pinned Subtext</label>
+            <input type="text" id="hero-form-chef-sub" placeholder="Tested 3 times in test kitchen • Pinned 8.1k times"
+              class="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d8] rounded-lg text-xs font-medium">
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between pt-3 border-t border-[#e8e2d8] flex-wrap gap-2">
+          <button type="button" id="btn-hero-reset-default"
+            class="px-4 py-2 border border-stone-300 hover:bg-stone-100 text-zinc-600 rounded-full font-bold text-xs transition cursor-pointer">
+            Reset to Default
+          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" id="btn-hero-cancel"
+              class="px-4 py-2 border border-[#e8e2d8] hover:bg-stone-100 text-zinc-700 rounded-full font-bold text-xs transition cursor-pointer">
+              Cancel
+            </button>
+            <button type="submit" id="btn-hero-save"
+              class="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white rounded-full font-bold text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Save Changes</span>
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- ========================================== -->
+  <!-- FOOTER (EXACT MATCHING SCREENSHOT)         -->
+  <!-- ========================================== -->
+  <footer class="bg-white border-t border-[#e8e2d8] py-12 text-zinc-600 text-xs no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-8 items-start">
+
+        <!-- Left Brand Col -->
+        <div class="md:col-span-2 space-y-3">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-xl overflow-hidden shadow-2xs border border-orange-200/70 bg-[#fff9f2] flex items-center justify-center shrink-0">
+              <img src="favicon-256.png" alt="Tasty Nest" class="w-full h-full object-contain">
+            </div>
+            <div>
+              <span class="font-serif font-bold text-xl text-zinc-900">Tasty Nest</span>
+              <span class="block text-[10px] text-zinc-400 -mt-0.5 font-medium">Simple Recipes • Great Taste</span>
+            </div>
+          </div>
+          <p class="text-zinc-500 leading-relaxed max-w-sm">
+            Crafted for home cooks and food lovers everywhere. Bringing cozy kitchen storytelling, Sri Lankan heirloom
+            cooking, and weeknight comfort to your dinner table.
+          </p>
+          <div class="flex items-center gap-2 pt-1">
+            <a href="https://www.pinterest.com/tastynest917" target="_blank" rel="noopener noreferrer"
+              class="w-7 h-7 rounded-full bg-pinterest text-white flex items-center justify-center font-bold text-xs hover:opacity-90 transition"
+              title="Tasty Nest on Pinterest">
+              P
+            </a>
+          </div>
+        </div>
+
+        <!-- Explore Col -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold uppercase tracking-wider text-zinc-800 text-[11px]">Explore</h4>
+          <ul class="space-y-1.5 text-zinc-500">
+            <li><a href="#home" class="hover:text-zinc-900 transition">About Us</a></li>
+            <li><a href="https://www.pinterest.com/tastynest917" target="_blank"
+                class="hover:text-zinc-900 transition">Explore Boards</a></li>
+            <li><a href="#home" class="hover:text-zinc-900 transition">Community Guidelines</a></li>
+          </ul>
+        </div>
+
+        <!-- Support & Trust Col -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold uppercase tracking-wider text-zinc-800 text-[11px]">Support & Trust</h4>
+          <ul class="space-y-1.5 text-zinc-500">
+            <li><a href="#home" class="hover:text-zinc-900 transition">Privacy Policy</a></li>
+            <li><a href="#home" class="hover:text-zinc-900 transition">Contact Support</a></li>
+            <li><a href="#home" class="hover:text-zinc-900 transition">Recipe Index</a></li>
+          </ul>
+        </div>
+
+        <!-- Pinterest Channel Col -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold uppercase tracking-wider text-zinc-800 text-[11px]">Pinterest Channel</h4>
+          <p class="text-zinc-400">Follow our official feed:</p>
+          <a href="https://www.pinterest.com/tastynest917" target="_blank" rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-pinterest text-pinterest rounded-full text-xs font-bold hover:bg-red-50 transition">
+            <span>@tastynest917</span>
+            <span>P</span>
+          </a>
+        </div>
+
+      </div>
+
+      <div
+        class="pt-6 border-t border-[#e8e2d8] flex flex-col md:flex-row items-center justify-between text-zinc-400 gap-4 text-xs">
+        <button id="secret-admin-footer"
+          class="cursor-pointer transition-colors hover:text-brand-700 text-center md:text-left select-none text-[11px] sm:text-xs"
+          title="Admin Portal">
+          © 2026 Tasty Nest. Crafted for home cooks and food lovers everywhere.
+        </button>
+
+        <!-- Developer & Designer Credit with Website & Email -->
+        <div class="flex items-center gap-2.5 flex-wrap justify-center md:justify-end">
+          <div
+            class="inline-flex items-center gap-2 bg-[#f4efe9] px-3.5 py-1.5 rounded-full border border-[#e8e2d8] text-[11px] text-zinc-600 shadow-2xs">
+            <span class="font-medium text-zinc-500">Design &amp; Developed by</span>
+            <a href="https://lageegaran.online" target="_blank" rel="noopener noreferrer"
+              class="font-bold text-brand-700 hover:text-brand-800 hover:underline inline-flex items-center gap-1 transition"
+              title="Visit Lagee Garaan's Website">
+              <span>Lagee Garaan</span>
+              <i data-lucide="external-link" class="w-3 h-3 text-brand-600"></i>
+            </a>
+            <span class="text-zinc-300">•</span>
+            <a href="mailto:lageegaran12@gmail.com"
+              class="text-zinc-600 hover:text-brand-700 hover:underline inline-flex items-center gap-1 transition font-medium"
+              title="Email Lagee Garaan">
+              <i data-lucide="mail" class="w-3 h-3 text-brand-600"></i>
+              <span>lageegaran12@gmail.com</span>
+            </a>
+          </div>
+
+          <!-- Discreet Hidden Admin Lock Button at the very bottom -->
+          <button id="btn-footer-secret-admin"
+            class="p-1.5 rounded text-zinc-300 hover:text-brand-700 hover:bg-stone-100 transition cursor-pointer"
+            title="Admin Portal" aria-label="Admin Portal">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- App Cloud & Logic Scripts -->
+  <script src="firebase-config.js"></script>
+  <script src="image-compressor.js"></script>
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
