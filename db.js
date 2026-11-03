@@ -1585,8 +1585,25 @@ async getRecipe(id) {
     }
     return (boards || []).map(b => ({ ...b, imageUrl: this.normalizeImagePath(b.imageUrl) }));
   },
-async savePinterestBoard(board) {
+  async savePinterestBoard(board) {
+    if (board && board.imageUrl) {
+      board.imageUrl = this.normalizeImagePath(board.imageUrl);
+    }
     await db.pinterestBoards.put(board);
+    if (window.isFirestoreActive && window.db_firestore) {
+      try {
+        await window.db_firestore.collection('pinterestBoards').doc(board.id).set(board, { merge: true });
+      } catch(e) {}
+    }
+  },
+
+  async deletePinterestBoard(id) {
+    await db.pinterestBoards.delete(id);
+    if (window.isFirestoreActive && window.db_firestore) {
+      try {
+        await window.db_firestore.collection('pinterestBoards').doc(id).delete();
+      } catch(e) {}
+    }
   },
 
   async resetPinterestBoards() {

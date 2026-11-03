@@ -605,17 +605,38 @@
               </div>
             </div>
 
-            <!-- Explore All Boards Red Pill Button -->
-            <a href="https://www.pinterest.com/tastynest917" target="_blank" rel="noopener noreferrer"
-              class="inline-flex items-center justify-center gap-1.5 px-5 py-2 bg-pinterest hover:bg-red-700 text-white text-xs font-bold rounded-full shadow-xs hover:shadow transition-all shrink-0 self-start md:self-center">
-              <span>Explore All Boards</span>
-              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-            </a>
+            <!-- Action Toolbar: Scroll Controls & Explore All Boards -->
+            <div class="flex items-center gap-3 shrink-0 self-start md:self-center">
+              <!-- Scroll Left / Right Buttons -->
+              <div class="flex items-center gap-1.5">
+                <button type="button" id="btn-pboard-scroll-left"
+                  class="w-8 h-8 rounded-full border border-[#e8e2d8] bg-white hover:bg-stone-50 text-zinc-700 flex items-center justify-center transition shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
+                  title="Previous Pin" aria-label="Scroll left">
+                  <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <button type="button" id="btn-pboard-scroll-right"
+                  class="w-8 h-8 rounded-full border border-[#e8e2d8] bg-white hover:bg-stone-50 text-zinc-700 flex items-center justify-center transition shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
+                  title="Next Pin" aria-label="Scroll right">
+                  <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <!-- Explore All Boards Red Pill Button -->
+              <a href="https://www.pinterest.com/tastynest917" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center justify-center gap-1.5 px-5 py-2 bg-pinterest hover:bg-red-700 text-white text-xs font-bold rounded-full shadow-xs hover:shadow transition-all shrink-0">
+                <span>Explore All Boards</span>
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
           </div>
 
-          <!-- 4 Board Cards Grid (Plays Video Live on Mouse Hover) -->
-          <div id="pinterest-boards-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <!-- Populated dynamically via JS with video hover playback -->
+          <!-- Pinterest Horizontal Carousel (Mobile Swipe & Desktop Scroll) -->
+          <div class="relative">
+            <div id="pinterest-boards-grid"
+              class="flex overflow-x-auto gap-4 sm:gap-6 pb-4 pt-1 snap-x snap-mandatory scroll-smooth no-scrollbar"
+              style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+              <!-- Populated dynamically via JS with video hover playback -->
+            </div>
           </div>
 
         </div>
@@ -1679,11 +1700,18 @@
         </button>
       </div>
 
-      <!-- Select Board Dropdown / Tabs -->
-      <div>
-        <label class="block text-[11px] font-bold text-zinc-600 uppercase mb-1">Select Board to Edit</label>
+      <!-- Select Board Dropdown / Tabs & Add Button -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="block text-[11px] font-bold text-zinc-600 uppercase">Select Board / Add New</label>
+          <button type="button" id="btn-add-new-pboard"
+            class="inline-flex items-center gap-1.5 text-xs font-bold text-brand-700 hover:text-brand-800 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-3 py-1 rounded-full transition cursor-pointer">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add New Video Board</span>
+          </button>
+        </div>
         <div id="pboard-tabs"
-          class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8]">
+          class="flex flex-wrap gap-1.5 p-1.5 bg-[#faf8f5] rounded-2xl border border-[#e8e2d8] max-h-36 overflow-y-auto">
           <!-- Injected via JS -->
         </div>
       </div>
@@ -1761,9 +1789,16 @@
         </div>
 
         <div class="flex items-center justify-between pt-3 border-t border-[#e8e2d8]">
-          <button type="button" id="btn-reset-pboard-defaults" class="text-xs text-rose-600 hover:underline font-bold">
-            Reset to Defaults
-          </button>
+          <div class="flex items-center gap-3">
+            <button type="button" id="btn-delete-pboard"
+              class="hidden text-xs text-rose-600 hover:text-rose-700 font-bold hover:underline transition items-center gap-1 cursor-pointer">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              <span>Delete This Video</span>
+            </button>
+            <button type="button" id="btn-reset-pboard-defaults" class="text-xs text-zinc-500 hover:underline">
+              Reset to Defaults
+            </button>
+          </div>
 
           <div class="flex items-center gap-2">
             <button type="button" id="btn-cancel-pboard-modal"

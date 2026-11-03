@@ -73,6 +73,15 @@ h1, h2, h3, .font-serif-heading {
   background: #b8ac9c;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* ========================================== */
 /* EDITORIAL HERO DISH SHOWCASE               */
 /* ========================================== */

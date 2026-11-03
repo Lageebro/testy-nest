@@ -609,9 +609,8 @@ async function renderPinterestBoards() {
   container.innerHTML = boards.map(board => {
     return `
       <div 
-        class="pinterest-video-card group relative rounded-2xl overflow-hidden aspect-4/5 bg-stone-100 border border-[#eee7de] shadow-xs cursor-pointer select-none"
+        class="pinterest-video-card group relative rounded-3xl overflow-hidden aspect-[9/16] w-[76vw] sm:w-[320px] lg:w-[calc(25%-18px)] shrink-0 snap-start bg-stone-100 border border-[#eee7de] shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer select-none"
         data-board-id="${board.id}"
-        onclick="window.open('${board.pinUrl || 'https://www.pinterest.com/tastynest917'}', '_blank')"
       >
         <!-- Poster Image (instant load) -->
         <img 
@@ -634,10 +633,10 @@ async function renderPinterestBoards() {
         ` : ''}
 
         <!-- Dark Gradient Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 via-35% to-transparent pointer-events-none"></div>
 
         <!-- Top Right Live Status Pill -->
-        <div class="video-status-badge absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 transition-all">
+        <div class="video-status-badge absolute top-3.5 right-3.5 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-xs">
           <span class="w-1.5 h-1.5 rounded-full bg-red-500 live-dot-pulse"></span>
           <span class="badge-text">${board.videoUrl ? 'Hover to Play' : 'Pin Board'}</span>
         </div>
@@ -647,7 +646,7 @@ async function renderPinterestBoards() {
           <button 
             type="button"
             onclick="event.stopPropagation(); toggleVideoAudio(this);" 
-            class="sound-toggle-btn opacity-0 group-hover:opacity-100 absolute top-3 left-3 bg-black/60 hover:bg-black/90 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] backdrop-blur-md transition-opacity"
+            class="sound-toggle-btn opacity-0 group-hover:opacity-100 absolute top-3.5 left-3.5 bg-black/60 hover:bg-black/90 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs backdrop-blur-md transition-opacity shadow-xs"
             title="Toggle Sound"
           >
             <i data-lucide="volume-x" class="w-3.5 h-3.5"></i>
@@ -655,13 +654,13 @@ async function renderPinterestBoards() {
         ` : ''}
 
         <!-- Bottom Text Info -->
-        <div class="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
-          <p class="text-xs font-bold leading-tight drop-shadow-sm">${board.title}</p>
-          <div class="flex items-center justify-between mt-1 text-[10px] text-white/80">
-            <span>${board.pinsCount || '500+ Pins'}</span>
-            <span class="flex items-center gap-0.5 font-bold text-white group-hover:text-amber-300 transition">
+        <div class="absolute bottom-4 left-4 right-4 text-white pointer-events-none space-y-1">
+          <p class="text-sm sm:text-base font-bold leading-snug drop-shadow-md text-white tracking-tight">${board.title}</p>
+          <div class="flex items-center justify-between text-xs text-white/85 pt-0.5">
+            <span class="font-medium">${board.pinsCount || '500+ Pins'}</span>
+            <span class="flex items-center gap-1 font-semibold text-white group-hover:text-amber-300 transition-colors">
               <span>Watch Pin</span>
-              <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
             </span>
           </div>
         </div>
@@ -671,19 +670,31 @@ async function renderPinterestBoards() {
   }).join('');
 
   lucide.createIcons();
+  setupPinterestScrollControls();
 
-  // Attach hover play/pause handlers to each card
+  // Attach hover play/pause and mobile tap handlers to each card
   const cards = container.querySelectorAll('.pinterest-video-card');
   cards.forEach(card => {
     const video = card.querySelector('video');
+    const badge = card.querySelector('.video-status-badge');
     const badgeText = card.querySelector('.badge-text');
+    const dot = card.querySelector('.live-dot-pulse');
+    const soundBtn = card.querySelector('.sound-toggle-btn');
+    const boardId = card.dataset.boardId;
+    const currentBoard = boards.find(b => b.id === boardId);
 
     if (video) {
       card.addEventListener('mouseenter', () => {
         if (video.src) {
           video.play().then(() => {
             video.style.opacity = '1';
+            if (badge) {
+              badge.classList.remove('bg-black/60');
+              badge.classList.add('bg-red-600');
+            }
             if (badgeText) badgeText.textContent = '▶ Playing';
+            if (dot) dot.style.display = 'none';
+            if (soundBtn) soundBtn.classList.remove('opacity-0');
           }).catch(() => {});
         }
       });
@@ -692,10 +703,60 @@ async function renderPinterestBoards() {
         video.pause();
         video.currentTime = 0;
         video.style.opacity = '0';
+        if (badge) {
+          badge.classList.remove('bg-red-600');
+          badge.classList.add('bg-black/60');
+        }
         if (badgeText) badgeText.textContent = 'Hover to Play';
+        if (dot) dot.style.display = 'inline-block';
+        if (soundBtn) soundBtn.classList.add('opacity-0');
       });
     }
+
+    // Click / Touch Handler: On mobile tap, plays preview video; second tap opens Pinterest
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.sound-toggle-btn')) return;
+
+      if (window.matchMedia('(hover: none)').matches && video && video.paused) {
+        e.preventDefault();
+        video.play().then(() => {
+          video.style.opacity = '1';
+          if (badge) {
+            badge.classList.remove('bg-black/60');
+            badge.classList.add('bg-red-600');
+          }
+          if (badgeText) badgeText.textContent = '▶ Playing';
+          if (dot) dot.style.display = 'none';
+          if (soundBtn) soundBtn.classList.remove('opacity-0');
+        }).catch(() => {});
+        return;
+      }
+
+      window.open(currentBoard?.pinUrl || 'https://www.pinterest.com/tastynest917', '_blank');
+    });
   });
+}
+
+function setupPinterestScrollControls() {
+  const leftBtn = document.getElementById('btn-pboard-scroll-left');
+  const rightBtn = document.getElementById('btn-pboard-scroll-right');
+  const grid = document.getElementById('pinterest-boards-grid');
+  if (!grid) return;
+
+  if (leftBtn) {
+    leftBtn.onclick = () => {
+      const card = grid.querySelector('.pinterest-video-card');
+      const amount = card ? (card.offsetWidth + 24) : 320;
+      grid.scrollBy({ left: -amount, behavior: 'smooth' });
+    };
+  }
+  if (rightBtn) {
+    rightBtn.onclick = () => {
+      const card = grid.querySelector('.pinterest-video-card');
+      const amount = card ? (card.offsetWidth + 24) : 320;
+      grid.scrollBy({ left: amount, behavior: 'smooth' });
+    };
+  }
 }
 
 function toggleVideoAudio(btn) {
@@ -2142,7 +2203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Save Pinterest Board Form Submit
+  // Save Pinterest Board Form Submit (Create or Update)
   document.getElementById('pboard-edit-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('pboard-form-id').value;
@@ -2152,30 +2213,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     const imageUrl = document.getElementById('pboard-form-image').value.trim();
     const videoUrl = document.getElementById('pboard-form-video-url').value.trim();
 
-    const existing = await db.pinterestBoards.get(id);
+    const isNew = !id || id === 'new';
+    const boardId = isNew ? ('pboard-' + Date.now()) : id;
+    const existing = isNew ? null : (await db.pinterestBoards.get(boardId));
+    const allBoards = await TastyDB.getPinterestBoards();
+
     const updatedBoard = {
-      ...existing,
-      id,
-      title,
-      pinsCount,
-      pinUrl,
-      imageUrl,
-      videoUrl
+      ...(existing || {}),
+      id: boardId,
+      title: title || 'Delicious Recipe Video',
+      pinsCount: pinsCount || '500+ Pins',
+      pinUrl: pinUrl || 'https://www.pinterest.com/tastynest917',
+      imageUrl: imageUrl || 'sri_lankan_crab_curry.jpg',
+      videoUrl: videoUrl || '',
+      order: existing?.order || (allBoards.length + 1)
     };
 
     await TastyDB.savePinterestBoard(updatedBoard);
-    showToast("Pinterest video pin updated! Hover over card to play.", "success");
+    showToast(isNew ? "New Pinterest video board added!" : "Pinterest video pin updated!", "success");
     document.getElementById('pinterest-video-modal').classList.add('hidden');
-    renderPinterestBoards();
+    await renderPinterestBoards();
+  });
+
+  // Add New Pinterest Board Trigger
+  document.getElementById('btn-add-new-pboard')?.addEventListener('click', () => {
+    switchPBoardTab('new');
+  });
+
+  // Delete Pinterest Board Trigger
+  document.getElementById('btn-delete-pboard')?.addEventListener('click', async () => {
+    if (!currentEditingBoardId || currentEditingBoardId === 'new') return;
+    const all = await TastyDB.getPinterestBoards();
+    if (all.length <= 1) {
+      showToast("At least one Pinterest video board must remain.", "warning");
+      return;
+    }
+    if (confirm("Are you sure you want to delete this Pinterest video board?")) {
+      await TastyDB.deletePinterestBoard(currentEditingBoardId);
+      showToast("Pinterest video board deleted.", "info");
+      document.getElementById('pinterest-video-modal').classList.add('hidden');
+      await renderPinterestBoards();
+    }
   });
 
   // Reset Pinterest Defaults Button
   document.getElementById('btn-reset-pboard-defaults')?.addEventListener('click', async () => {
-    if (confirm("Reset all 4 Pinterest video boards to defaults?")) {
+    if (confirm("Reset all Pinterest video boards to defaults?")) {
       await TastyDB.resetPinterestBoards();
       showToast("Reset to default Pinterest video boards", "info");
       document.getElementById('pinterest-video-modal').classList.add('hidden');
-      renderPinterestBoards();
+      await renderPinterestBoards();
     }
   });
 
@@ -2303,7 +2390,7 @@ async function renderPBoardTabs(boards) {
   const container = document.getElementById('pboard-tabs');
   if (!container) return;
 
-  container.innerHTML = boards.map(b => {
+  const tabsHtml = boards.map(b => {
     const isActive = b.id === currentEditingBoardId;
     return `
       <button 
@@ -2315,6 +2402,19 @@ async function renderPBoardTabs(boards) {
       </button>
     `;
   }).join('');
+
+  const isNewActive = currentEditingBoardId === 'new';
+  const newTabHtml = `
+    <button
+      type="button"
+      onclick="switchPBoardTab('new')"
+      class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold truncate transition cursor-pointer flex items-center gap-1 ${isNewActive ? 'bg-[#c2410c] text-white shadow-subtle' : 'bg-orange-50 text-brand-700 hover:bg-orange-100 border border-orange-200'}"
+    >
+      <span>+ Add Video</span>
+    </button>
+  `;
+
+  container.innerHTML = tabsHtml + newTabHtml;
 }
 
 async function switchPBoardTab(boardId) {
@@ -2325,8 +2425,45 @@ async function switchPBoardTab(boardId) {
 }
 
 async function loadPBoardForm(boardId) {
+  const deleteBtn = document.getElementById('btn-delete-pboard');
+  const preview = document.getElementById('pboard-form-preview-video');
+  const emptyNote = document.getElementById('pboard-preview-empty');
+
+  if (boardId === 'new') {
+    document.getElementById('pboard-form-id').value = 'new';
+    document.getElementById('pboard-form-title').value = '';
+    document.getElementById('pboard-form-count').value = '500+ Pins';
+    document.getElementById('pboard-form-url').value = 'https://www.pinterest.com/tastynest917';
+    document.getElementById('pboard-form-image').value = 'sri_lankan_pol_roti.jpg';
+    document.getElementById('pboard-form-video-url').value = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+
+    if (deleteBtn) {
+      deleteBtn.classList.add('hidden');
+      deleteBtn.classList.remove('inline-flex');
+    }
+
+    if (preview) {
+      preview.src = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+      preview.classList.remove('hidden');
+      preview.play().catch(() => {});
+      emptyNote?.classList.add('hidden');
+    }
+    return;
+  }
+
   const board = await db.pinterestBoards.get(boardId);
   if (!board) return;
+
+  const allBoards = await TastyDB.getPinterestBoards();
+  if (deleteBtn) {
+    if (allBoards.length > 1) {
+      deleteBtn.classList.remove('hidden');
+      deleteBtn.classList.add('inline-flex');
+    } else {
+      deleteBtn.classList.add('hidden');
+      deleteBtn.classList.remove('inline-flex');
+    }
+  }
 
   document.getElementById('pboard-form-id').value = board.id;
   document.getElementById('pboard-form-title').value = board.title;
@@ -2335,8 +2472,6 @@ async function loadPBoardForm(boardId) {
   document.getElementById('pboard-form-image').value = board.imageUrl || '';
   document.getElementById('pboard-form-video-url').value = board.videoUrl || '';
 
-  const preview = document.getElementById('pboard-form-preview-video');
-  const emptyNote = document.getElementById('pboard-preview-empty');
   if (board.videoUrl) {
     preview.src = board.videoUrl;
     preview.classList.remove('hidden');
