@@ -168,7 +168,9 @@ function navigateTo(view, param = null) {
 
   if (view === 'home') {
     homeView.classList.remove('hidden');
-    window.location.hash = '#home';
+    if (window.location.hash !== '#home' && window.location.hash !== '') {
+      window.location.hash = '#home';
+    }
     document.title = "Tasty Nest | Handcrafted Home Recipes & Pinterest Kitchen";
     renderHeroSection();
     renderRecipes();
@@ -1403,8 +1405,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Ensure DB is seeded and ready
   await TastyDB.init();
 
-  // Initial Hero Render
+  // Initial Hero & Pinterest Boards Render
   await renderHeroSection();
+  await renderPinterestBoards();
 
   // Hash Routing
   window.addEventListener('hashchange', handleHashChange);

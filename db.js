@@ -27,29 +27,29 @@ db.version(5).stores({
   reviews: 'id, recipeId, author, rating, comment, createdAt'
 });
 
-// Default Pinterest Boards with Hover Live Video support
+// Default Pinterest Boards with Hover Live Video support (Matches exact Pinterest showcase)
 const DEFAULT_PINTEREST_BOARDS = [
   {
     id: "pboard-spices",
-    title: "Board: Spices / Aromas",
+    title: "Caramel Apple Cheesecake",
     pinsCount: "546 Pins",
     pinUrl: "https://www.pinterest.com/tastynest917",
-    imageUrl: "crab_spice_prep.jpg",
+    imageUrl: "dessert_chocolate_lava.jpg",
     videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
     order: 1
   },
   {
     id: "pboard-bakes",
-    title: "Board: Cozy Morning Bakes",
+    title: "Grilled Cheese Hot Dog 🥓",
     pinsCount: "874 Pins",
     pinUrl: "https://www.pinterest.com/tastynest917",
-    imageUrl: "dessert_chocolate_lava.jpg",
+    imageUrl: "crab_spice_prep.jpg",
     videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     order: 2
   },
   {
     id: "pboard-dinners",
-    title: "Board: 15-Min Dinners",
+    title: "Mac and Cheese",
     pinsCount: "1,280 Pins",
     pinUrl: "https://www.pinterest.com/tastynest917",
     imageUrl: "quick_dinners_bowl.jpg",
@@ -58,10 +58,10 @@ const DEFAULT_PINTEREST_BOARDS = [
   },
   {
     id: "pboard-drinks",
-    title: "Board: Tropical Drinks",
+    title: "Juicy Chicken",
     pinsCount: "720 Pins",
     pinUrl: "https://www.pinterest.com/tastynest917",
-    imageUrl: "refreshing_cooler_drink.jpg",
+    imageUrl: "honey_soy_salmon.jpg",
     videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     order: 4
   }
@@ -769,11 +769,17 @@ const TastyDB = {
       if (boardCount === 0) {
         await db.pinterestBoards.bulkPut(DEFAULT_PINTEREST_BOARDS);
       } else {
-        // Upgrade board poster images to local files
+        // Upgrade board poster images & titles to match current showcase
         for (const b of DEFAULT_PINTEREST_BOARDS) {
           const existing = await db.pinterestBoards.get(b.id);
-          if (existing && (!existing.imageUrl || existing.imageUrl.includes('unsplash.com'))) {
-            await db.pinterestBoards.update(b.id, { imageUrl: b.imageUrl });
+          if (existing) {
+            await db.pinterestBoards.update(b.id, {
+              title: b.title,
+              pinsCount: b.pinsCount,
+              imageUrl: this.normalizeImagePath(b.imageUrl)
+            });
+          } else {
+            await db.pinterestBoards.put(b);
           }
         }
       }
